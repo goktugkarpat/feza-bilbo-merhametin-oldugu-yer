@@ -1,0 +1,9 @@
+.DS_Store
+.claude/
+__pycache__/
+.ses_onbellek/
+tools/
+test/
+
+.voice-tools/
+.voice-work/
