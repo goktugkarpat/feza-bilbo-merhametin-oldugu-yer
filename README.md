@@ -1,6 +1,6 @@
 # Feza ve Bilbo: Merhametin Öldüğü Yer
 
-**Yetişkinler için karanlık bir masal — v2, cila sürümü.** Basit çizgi film görünümünün içinde lanetlenmiş topraklar ve merhametsiz bir savaş. Feza kendi lanetini silah yapan bir iblis avcısıdır; Bilbo geniş çeneli, pençeli, sırtı dikenli bir canavar köpek. Karanlığa karanlıkla karşılık verirler.
+**Yetişkinler için karanlık bir masal.** Basit çizgi film görünümünün içinde lanetlenmiş topraklar ve merhametsiz bir savaş. Feza kendi lanetini silah yapan bir iblis avcısıdır; Bilbo geniş çeneli, pençeli, sırtı dikenli bir canavar köpek. Karanlığa karanlıkla karşılık verirler.
 
 Feza ve Bilbo Huysuzlara Karşı v49 temelinden ayrı hazırlanmıştır. Kamera, dokunmatik hareket, gölge kalitesi ve hafif çizim yapısı korunur. Kullanıcının son isteğiyle karanlık mekânların ortam ışığı okunurluk için ölçülü artırılmıştır. Kayıtlar ve internetsiz kopya bu oyuna özeldir.
 
@@ -10,8 +10,8 @@ Son ayar: altı bölümde ortam ışığı ve görüntü aydınlığı artırıl
 
 - `index.html` dosyasına çift tıklayın. Mac'te `OYNA.command` da kullanılabilir.
 - Sessiz açılış: `OYNA-Sessiz.command`, Windows'ta `OYNA-Sessiz.url` veya adresin sonunda `?sessiz`.
-- Yayınlandıktan sonra iPad Safari › Paylaş › Ana Ekrana Ekle ile eklenebilir. İlk yüklemeden sonra internetsiz açılır.
-- Henüz GitHub'a gönderilmedi. `yayinla.command` kullanıcı açtığında bu oyun için ayrı depoya gönderir.
+- İnternette yukarıdaki oyun bağlantısını açın. iPad Safari › Paylaş › Ana Ekrana Ekle ile eklenebilir. İlk yüklemeden sonra internetsiz açılır.
+- `yayinla.command` değişiklikleri bu oyunun GitHub deposuna gönderir.
 
 ## Altı mekân ve efendileri
 
