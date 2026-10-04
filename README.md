@@ -11,7 +11,6 @@ Son ayar: altı bölümde ortam ışığı ve görüntü aydınlığı artırıl
 ## Açılış
 
 - `index.html` dosyasına çift tıklayın. Mac'te `OYNA.command` da kullanılabilir.
-- Sessiz açılış: `OYNA-Sessiz.command`, Windows'ta `OYNA-Sessiz.url` veya adresin sonunda `?sessiz`.
 - İnternette yukarıdaki oyun bağlantısını açın. iPad Safari › Paylaş › Ana Ekrana Ekle ile eklenebilir. İlk yüklemeden sonra internetsiz açılır.
 - `yayinla.command` değişiklikleri bu oyunun GitHub deposuna gönderir.
 
@@ -55,7 +54,3 @@ Can bitince son yemin taşına dönülür. İlerleme yalnız **Mola › Kaydet**
 96 yeni Türkçe anlatım kaydı; toplam yaklaşık **7 dakika 24 saniye**. Doğal kadın sesi `tr-TR-EmelNeural`; kayıt sessizlikleri ffmpeg ile kırpıldı. Dokuz gerilimli müzik düzeni ve 91 savaş/arayüz sesi mevcut ses motorunda üretilir. Tarayıcı konuşma sesi kullanılmaz.
 
 Bilbo havlamasının kaynak ve izin bilgisi `assets/audio/CREDITS.md` içindedir. Three.js lisansı kendi dosyasında korunur. `.voice-tools` ve `.ses_onbellek` yalnız ses üretim araçlarıdır; yayımlanmaz.
-
-## Doğrulama
-
-Üç karakter yolu, altı bölümlük otomatik oynanışı yenilmezlik kullanmadan tamamladı. Lanet Şövalyesi ile ayrı Normal ve Zor tam macera denemeleri de zaferle bitti; Zor denemesinde yenilgi ve yemin taşına dönüş gerçekleşti, macera devam etti. 18 bölüm/tohumda çıkış erişimi, 58 yaratık çeşidi ve 4.872 animasyon durumu, 256 eşya modeli, dokuz yetenek, Bilbo'nun saldırı/zırh/toparlanma davranışı, alışveriş ve kayıt kontrol edildi. 36 bölüm geçişinde sahnede dünya nesnesi birikmedi. Dört telefon/tablet ekran boyutunda menüler ve internetsiz açılış denendi. Uzun savaş metinleri ve kritik sayıları telefon kenarında kesilmez; üst uyarı yazısıyla çakışmaz. 91 efektin yoğun karışımında ses bozulması olmadı. Gerçek iPad/Safari donanım denemesi bu bilgisayarda yapılmamıştır.

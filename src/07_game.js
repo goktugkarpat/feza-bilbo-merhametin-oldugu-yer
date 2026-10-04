@@ -18,8 +18,7 @@
    until then; an inactive portal does nothing); the dragon keeps the crystal finale. New creatures: kaplumbaga (tucks
    in and rolls at Feza along a lane), ateskusu (flying fire chick flicking slow embers). DIFF arrays are in ZONES order
    orman, magara, yanardag, kale (looked up by zone id). Saves before sv 3 with zone ≥ 2 move one zone on (castle = 3).
-   Extra event 'portalOpen' {x, z}; 'happy' also carries final (true for the dragon). __T.boss(i) jumps to zone i's
-   boss (default: the dragon), __T.bossHit(frac) / __T.bossCfg(type) testing aids.
+   Extra event 'portalOpen' {x, z}; 'happy' also carries final (true for the dragon). The final boss lives in the last zone.
    Round 3 QA fixes: a boss never sits inside Feza (separate() moves the boss when he cannot give way; hops / pop-ups land
    next to him); a portal that just opened does not swallow Feza standing on it (L.portalObj.openT / .armed: walk-in after
    PORTAL.wait s and once he was PORTAL.arm m away; a tap always works) and the boss's treasure flies to him (and into his
@@ -76,7 +75,7 @@
    plays hide-and-seek in 4 holes (avla), cool rocks tip the rolling turtle over (serintas), a carrot feeds the knight's horse
    (havuc), friendship hearts charm the dragon (kalp). Its pickable things are L.breakObjs with .bonus; the TBC timer waits
    while one runs (q.timer ≥ BONUS.timerAfter after it). Extra: event 'bonus' {on, kind, type, have, need, state},
-   GAME.bonusSpot() (where the camera should look too), __T.bonus(), b.st.aggro, b.st.crownOff; the turtle's roll now ends
+   GAME.bonusSpot() (where the camera should look too), b.st.aggro, b.st.crownOff; the turtle's roll now ends
    in its own 'rollend' phase. EMODEL.jellyCrown / havuc / serinTas / hole, FX.marker / dizzy and the 'heart' / 'bigbubble'
    projectiles are optional (plain stand-ins). test/r6_game_bonus.html. */
 const GAME = (() => {
@@ -368,7 +367,7 @@ const GAME = (() => {
   const P = {
     pos: new THREE.Vector3(), face: Math.PI, hp: T.baseHp, maxHp: T.baseHp, lvl: 1, xp: 0, xpNext: xpFor(1), gold: 0,
     roundPower: null, shopStock: {}, shopWard: null, heroClass: 'warrior', potions: DIFF.potions, maxPotions: 5, dmg: 8, armor: 0, speed: T.speed, equip: { weapon: null, offhand: null, hat: null, cape: null }, bag: [],
-    skills: [], spin: 0, shield: 0, dead: false, checkpoint: { x: 0, z: 0 }, zone: 0, ng: 0, god: false,
+    skills: [], spin: 0, shield: 0, dead: false, checkpoint: { x: 0, z: 0 }, zone: 0, ng: 0,
   };
   // Controller (input intent, swing, timers). Private.
   const C = {
@@ -4464,7 +4463,7 @@ const GAME = (() => {
   // ── Player ──
   function hurtPlayer(amount, fromX, fromZ, kb = 0.4) {
     if (P.dead || GAME.state !== 'play' || C.invuln > 0) return false;
-    if (P.god || merchantNear()) return false;
+    if (merchantNear()) return false;
     if (P.shield > 0) { burst('oath', P.pos.x, 1, P.pos.z, { color: '#865796', count: 6 }); sfx('shield', { vol: 0.5 }); return false; }
     if (Bilbo && PET.hp > 0 && !PET.retreat && gt < PET.guardUntil && dist2(P.pos.x,P.pos.z,bilboPos.x,bilboPos.z)<36) {
       const absorbed=amount*.35; petHurt(absorbed); amount-=absorbed;
@@ -6586,91 +6585,6 @@ const GAME = (() => {
       try { H.setEquip(wear); } catch (err) { warnOnce('setEquip', err); }
     }
   }
-
-  // ── Debug hooks (always on) ──
-  function bossZone() {   // the dragon's zone (the last one)
-    const Z = zones(); if (!Z) return 0;
-    let i = Z.findIndex(z => z.final); if (i < 0) i = Z.findIndex(z => z.boss === 'ejderha');
-    return i >= 0 ? i : Z.length - 1;
-  }
-  window.__T = {
-    god(onv = true) { P.god = !!onv; return P.god; },
-    tp(x, z) {
-      if (!circleFree(x, z, T.heroR) && hasLevel() && LEVEL.randomFloorNear) { const f = LEVEL.randomFloorNear(L, x, z, 0.3, 3); if (f) { x = f.x; z = f.z; } }
-      if (!circleFree(x, z, T.heroR)) {   // still inside a wall/solid: nearest free spot on growing rings
-        search: for (let r = 0.5; r <= 5; r += 0.5) for (let k = 0; k < 16; k++) {
-          const a = k / 16 * TAU, qx = x + Math.sin(a) * r, qz = z + Math.cos(a) * r;
-          if (circleFree(qx, qz, T.heroR)) { x = qx; z = qz; break search; }
-        }
-      }
-      placeHero(x, z, P.face); C.hasT = false; C.targetE = null; C.targetObj = null; activate(true, 12); },
-    xp(n = 100) { gainXp(n); return P.lvl; },
-    zone(i) { if (GAME.state === 'title') { resetPlayer(); } return loadZone(i); },
-    kill() { let n = 0; for (const e of enemies.slice()) { if (damage(e, e.hp + 1, { silent: true, force: true })) n++; } return n; },
-    give(slot = 'weapon', baseId, rarity = 2) {
-      if (typeof ITEMS === 'undefined' || !ITEMS.make) return null;
-      const bases = (ITEMS.BASES && ITEMS.BASES[slot]) || [];
-      const id = baseId || (bases[bases.length - 1] && bases[bases.length - 1].id);
-      const it = ITEMS.make(slot, id, rarity, ilvlNow());
-      addItem(it, true);
-      return it;
-    },
-    boss(zi) {   // jump to zone zi's boss (default: the dragon), a few metres south of it (outside its reach)
-      const Z = zones(), bz = zi === undefined || zi === null ? bossZone() : clamp(zi | 0, 0, Z ? Z.length - 1 : 0);
-      if (P.zone !== bz || GAME.state === 'title' || !boss || boss.dead) { if (GAME.state === 'title') resetPlayer(); loadZone(bz); }
-      if (!boss) return null;
-      window.__T.tp(boss.x, boss.z + boss.r + 8);
-      return boss;
-    },
-    encounter() { const q = boss && boss.encounter; return q ? { type: boss.type, eggs: q.eggs.map(e => ({ x: e.x, z: e.z })), whelps: enemies.filter(e => e.whelp && !e.dead).length, move: q.move ? { kind: q.move.kind, t: q.move.t, dur: q.move.dur, warn: q.move.warn, hits: q.move.hits, x: q.move.x, z: q.move.z, x0: q.move.x0, z0: q.move.z0, x1: q.move.x1, z1: q.move.z1, radius: q.move.radius, angle: q.move.angle, sweep: q.move.sweep, range: q.move.range, gap: q.move.gap, dots: q.move.dots.map(d => ({ x: d.x, z: d.z, at: d.at, hit: d.hit })),
-      passes: q.move.passes ? q.move.passes.map(p => Object.assign({}, p)) : undefined, plan: q.move.plan ? Object.assign({}, q.move.plan) : undefined } : null,
-      // (Round 5) the knight's banners: where they stand and which are down; sancak = 'up' | 'dizzy' | 'done' (null: not yet)
-      banners: q.sancak ? q.sancak.list.map(s => ({ x: s.x, z: s.z, down: s.broken })) : null, sancak: q.sancak ? q.sancak.state : null, dizzy: boss.ph === 'dizzy' } : null; },
-    bossCfg(type) { return Object.assign({}, bossCfg(type || (boss && boss.type) || 'ejderha')); },   // {per, lo, hi, dmg}
-    // (Round 6) a read-only snapshot of the boss's bonus (null: none yet / no fight)
-    bonus() {
-      const b = boss, q = b && b.encounter, Q = q && q.bonus;
-      if (!b) return null;
-      const xz = o => (o ? { x: +o.x.toFixed(2), z: +o.z.toFixed(2) } : null);
-      return { type: b.type, kind: b.kit && b.kit.bonus, ph: b.ph, won: !!b.bonusWon, wave: b.kalpWave || 0, crownOff: b.st.crownOff || 0, timer: q ? +q.timer.toFixed(2) : null,
-        hold: bonusHold(q), spot: bonusSpot(), move: q && q.move ? q.move.kind : null,
-        ...(Q ? { state: Q.state, stage: Q.stage, t: +Q.t.toFixed(2), have: Q.have, need: Q.need, stun: Q.stunPh, mark: !!Q.mark, dizzy: !!Q.dz,
-          crown: Q.crown ? { stage: Q.crown.stage, ...xz(Q.crown), y: +Q.crown.y.toFixed(2), x1: Q.crown.x1, z1: Q.crown.z1 } : null,
-          bub: Q.bub ? { stage: Q.bub.stage, ...xz(Q.bub), y: +Q.bub.y.toFixed(2), s: +Q.bub.s.toFixed(2), t: +Q.bub.t.toFixed(2) } : null,
-          holes: (Q.holes || []).map(h => ({ ...xz(h), open: +h.open.toFixed(2), closing: h.closing })), target: xz(Q.target), peeks: Q.peeks || 0,
-          rocks: (Q.rocks || []).map(r => ({ ...xz(r), dead: r.dead, solid: !!(L && L.solids && L.solids.includes(r.solid) && r.solid.alive) })),
-          carrot: Q.carrot ? { stage: Q.stage, ...xz(Q.carrot), y: +Q.carrot.y.toFixed(2) } : null,
-          hearts: (Q.hearts || []).map(h => ({ ...xz(h), stage: h.stage, done: h.done, got: !!h.got, t: +h.t.toFixed(2) })), big: !!Q.big } : { state: null }) };
-    },
-    bossHit(frac = 0.1) { if (boss && !boss.dead) damage(boss, Math.max(1, Math.round(boss.maxHp * frac)), { silent: true, force: true }); return boss ? boss.hp : null; },
-    // extras for tests
-    spawn(type = 'jole', x = P.pos.x, z = P.pos.z - 4, elite = false) { return makeEnemy({ type, x, z, elite: !!elite, pack: 'dbg', face: Math.atan2(P.pos.x - x, P.pos.z - z) }); },
-    blade() { return bladeColor(); },
-    hidden(e) { return !!e && hidden(e); },
-    stats() { return Object.assign({}, STATS); },
-    // the walk controller (drag / tap-walk / routes) and a route to a point, for the walking tests
-    ctl() { return { drag: C.drag, hasT: C.hasT, tx: C.tx, tz: C.tz, vel: C.vel, blockT: C.blockT, route: C.route ? C.route.length : 0, dragRoute: C.dragRoute ? C.dragRoute.length : 0,
-      dragPlanAt: C.dragPlanAt, dragWinT: C.dragWinT, portalHold: C.portalHold, lockT: C.lockT, target: C.targetE ? 'enemy' : C.targetObj ? C.targetObj.type : null }; },
-    route(tx, tz) { const r = routeTo(tx, tz); return r ? r.map(q => [+q.x.toFixed(2), +q.z.toFixed(2)]) : null; },
-    fr() { return Object.assign({}, FR); },
-    hurt(n = 10) { const g = P.god; P.god = false; C.invuln = 0; const r = hurtPlayer(n); P.god = g; return r; },
-    win() { if (boss && !boss.dead) damage(boss, boss.hp + 1, { silent: true, force: true }); return !!boss; },
-    victory() { victory(); },
-    loot(x = P.pos.x, z = P.pos.z, what = 'all') {
-      const all = what === 'all', mk = (sl, id, r) => (typeof ITEMS !== 'undefined' && ITEMS.make ? ITEMS.make(sl, id, r, ilvlNow()) : null);
-      if (all || what === 'coins') spawnCoins(x, z, 24, 10);
-      if (all || what === 'heart') spawnLoot('heart', x, z);
-      if (all || what === 'potion') spawnLoot('potion', x, z);
-      if (all) { spawnItem(rollItem(2), x, z); spawnItem(mk('weapon', 'gokkusagi', 3), x, z); }
-      if (typeof what === 'object' && what) spawnItem(mk(what.slot, what.id, what.rarity || 0), x, z);
-    },
-    state() {
-      return { state: GAME.state, difficulty: hard ? 'hard' : 'normal', zone: P.zone, lvl: P.lvl, xp: P.xp, hp: Math.round(P.hp), maxHp: P.maxHp, gold: P.gold, potions: P.potions,
-        dmg: P.dmg, enemies: enemies.length, sleepers: sleepers.length, dying: dying.length, proj: projectiles.length, coins: coins.length,
-        loot: loot.length, crystal: crystal ? (crystal.ready ? 'ready' : 'rising') : null, boss: boss ? Math.round(boss.hp) + '/' + boss.maxHp + ' ' + boss.ph : null,
-        bossType: boss ? boss.type : null, portal: L && L.portalObj ? !!L.portalObj.active : null, mortars: mortars.length, pos: [+P.pos.x.toFixed(2), +P.pos.z.toFixed(2)] };
-    },
-  };
 
   const GAME = {
     P, H: null, enemies, L: null, state: 'title', paused: false, skills: [], boss: null, time: 0,

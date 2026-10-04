@@ -85,7 +85,6 @@ stunned the TBC clock waits; afterwards `q.timer ≥ BONUS.timerAfter` (4 s). Ig
 nap / calm / zone change / cheer (cheer = sparkly poof); a nap or calm re-arms it unless `b.bonusWon`. Pause freezes it.
 Spots for the crown, carrot and hearts are tried IN VIEW first (`inView`: ≤ 3.5 m toward the camera (+z) of Feza, ≤ 11 m away).
 APIs: event `'bonus'` {on, kind, type, have, need, state}; `GAME.bonusSpot()` → {x, z} | null (where Feza should go: crown,
-bubble, target hole, nearest rock, carrot on the floor, nearest heart); `__T.bonus()` read-only snapshot; `b.st.aggro`,
 `b.st.crownOff`; the turtle's roll ends in its own phase 'rollend' (1.3–1.8 s).
 | boss | idea | at hp | what the kid does → stun |
 |---|---|---|---|
@@ -322,7 +321,6 @@ subtitle icons: sehir 🏰, ilk_nobetci 🛡️, ilk_simitci 🥯, ilk_supurgeci
   Fixed captured paths/areas do not chase the player after warning. Shared geometry/materials and reusable meshes bound allocation.
   The first new move is scheduled after6s; subsequent specials wait13s between moves and start only from idle, alternating where an older timed move exists.
   Jöle retains its HP-threshold splits, dragon eggs keep their independent timer. Existing cleanup/pause rules apply.
-- `__T.encounter()` returns read-only egg positions, living whelp count and current move for QA.
 
 ## Screen-lock recovery and star attack (latest)
 - Audio keeps gesture-release/key and page lifecycle recovery listeners after the initial unlock. Returning from an interrupted
@@ -782,7 +780,6 @@ vanishes in sparkles (no pet), crystal appears ('kristal'), touching it
 → 'victory' ('son' line). Continue → new game+ (ng+1, zone 0, enemies stronger, keep level/items, 'tekrar').
 Save to localStorage 'fezaKotulereKarsi.v3' ONLY when the parent presses Pause › Kaydet (parent's wish: every launch is a new game;
 .v1/.v2 were the automatic saves of older builds and are ignored).
-Debug hooks (always on): window.__T = { god(on), tp(x,z), xp(n), zone(i), kill(), give(slot, baseId, rarity), boss() }.
 ```
 
 ## SKILLS — src/08_skills.js
