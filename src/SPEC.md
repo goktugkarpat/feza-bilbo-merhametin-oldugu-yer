@@ -843,3 +843,5 @@ The reference is saved, validated and restored; old NG saves infer it once from 
 NG mob HP uses max(1,expectedDamage/usualZoneDamage) times pressure; outgoing damage uses max(1,expectedHealth/usualZoneHealth) times pressure. Pressure is 1+.06*min(ng,5). These replace the old NG multipliers, not stack on top.
 NG boss HP is per*max(lo,expectedDamage)*pressure, without the first-run cap or live equipment scaling. The dragon retains its hybrid-wand correction. Summoned enemies/whelps use the same frozen reference.
 Cooldowns shorten 6% on NG1, then 1.5% per round up to 12%; telegraph duration is unchanged. Movement bonus caps at 12%. Normal/Zor multipliers remain separate and live-switchable.
+- Incoming damage (5 October 2026): DIFF.damageTaken is normal2.6 / hard4.5 relative to each mode's previous damage.
+  hurtPlayer applies it exactly once, before armour, merchant ward and the final rounding (same as feza-huysuzlara-karsi).
