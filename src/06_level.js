@@ -5,20 +5,24 @@
    renkli ahşap çatılı evler, pazar tezgâhları, surlar ve kuleler, en sonda İnfaz Meydanı ve Yemin Kapısı.
    LEVEL.generate() saf veri üretir, LEVEL.build() sahneyi kurar (bkz. src/SPEC.md). */
 const ZONES = [
-  { id: 'orman', ad: 'Yas Ormanı', theme: 'forest', line: 'orman', music: 'orman', size: 100, rooms: 8, side: 3,
+  { id: 'tuvalet', ad: 'Paslı Hamam', theme: 'bathroom', line: 'tuvalet', music: 'tuvalet', size: 90, rooms: 6, side: 2,
+    enemies: { kakacik: 4, cisdamlasi: 3, sabunkopugu: 2 }, elites: ['kakacik', 'sabunkopugu'], hpMult: 0.78, dmgMult: 0.65, xpMult: 0.85, gold: 1, ilvl: 1, boss: 'kopukusta' },
+  { id: 'ay', ad: 'Kül Ayı', theme: 'moon', line: 'ay', music: 'ay', size: 96, rooms: 6, side: 2,
+    enemies: { ayponpon: 4, yildizcik: 3, kratercik: 2 }, elites: ['ayponpon', 'yildizcik'], hpMult: 0.9, dmgMult: 0.8, xpMult: 0.95, gold: 1.15, ilvl: 1, boss: 'aytavsan' },
+  { id: 'orman', ad: 'Yas Ormanı', theme: 'forest', line: 'orman', music: 'orman', size: 100, rooms: 6, side: 2,
     enemies: { jole: 4, mantar: 2, yarasa: 2, goblin: 3 }, elites: ['jole', 'goblin'], hpMult: 1, dmgMult: 1, xpMult: 1, gold: 1, ilvl: 1, boss: 'kraljole' },
-  { id: 'kefir', ad: 'Çürüme Vadisi', theme: 'dairy', line: 'kefir', music: 'kefir', size: 100, rooms: 8, side: 3,
+  { id: 'kefir', ad: 'Çürüme Vadisi', theme: 'dairy', line: 'kefir', music: 'kefir', size: 100, rooms: 6, side: 2,
     enemies: { yogurt: 4, kaymak: 3, kopuk: 3, peynir: 1, jole: 2 }, variants: { jole: ['muhallebi'] }, elites: ['yogurt', 'kaymak'],
     hpMult: 1.4, dmgMult: 1.2, xpMult: 1.35, gold: 1.5, ilvl: 2, boss: 'kefirdev' },
-  { id: 'magara', ad: 'Fısıltı Madenleri', theme: 'cave', line: 'magara', music: 'magara', size: 100, rooms: 9, side: 3,
+  { id: 'magara', ad: 'Fısıltı Madenleri', theme: 'cave', line: 'magara', music: 'magara', size: 100, rooms: 6, side: 2,
     enemies: { kostebek: 4, salyangoz: 3, yarasa: 2, golem: 1 }, elites: ['kostebek', 'salyangoz'], hpMult: 1.8, dmgMult: 1.4, xpMult: 1.7, gold: 2, ilvl: 4, boss: 'kostebekusta' },
-  { id: 'yanardag', ad: 'Kül Ocağı', theme: 'volcano', line: 'yanardag', music: 'yanardag', size: 100, rooms: 8, side: 3,
+  { id: 'yanardag', ad: 'Kül Ocağı', theme: 'volcano', line: 'yanardag', music: 'yanardag', size: 100, rooms: 6, side: 2,
     enemies: { jole: 3, kaplumbaga: 4, ateskusu: 3, atescik: 2, golem: 1 }, variants: { jole: ['lava'], golem: ['magma'] }, elites: ['kaplumbaga', 'ateskusu'],
     hpMult: 2.3, dmgMult: 1.65, xpMult: 2.1, gold: 2.5, ilvl: 6, boss: 'lavkaplumbaga' },
-  { id: 'sehir', ad: 'Veba Şehri', theme: 'town', line: 'sehir', music: 'sehir', size: 100, rooms: 8, side: 3,
+  { id: 'sehir', ad: 'Veba Şehri', theme: 'town', line: 'sehir', music: 'sehir', size: 100, rooms: 6, side: 2,
     enemies: { nobetci: 4, simitci: 3, supurgeci: 3, tellal: 1 }, elites: ['nobetci', 'simitci'],
     hpMult: 2.55, dmgMult: 1.8, xpMult: 2.3, gold: 2.8, ilvl: 7, boss: 'sovalye' },
-  { id: 'kale', ad: 'Merhametsiz Kale', theme: 'castle', line: 'kale', music: 'kale', size: 104, rooms: 8, side: 2,
+  { id: 'kale', ad: 'Merhametsiz Kale', theme: 'castle', line: 'kale', music: 'kale', size: 104, rooms: 6, side: 2,
     enemies: { asker: 4, atescik: 3, hayalet: 2, golem: 1 }, elites: ['asker', 'atescik'], hpMult: 3.0, dmgMult: 2.0, xpMult: 2.7, gold: 3.2, ilvl: 8, boss: 'ejderha', final: true },
 ];
 
@@ -170,7 +174,8 @@ const LEVEL = (function () {
     for (let k = 1; k < N; k++) {
       const A = rooms[k - 1], last = k === N - 1;
       const hw = last ? 13 : RNG.int(6, 9), hh = last ? 11 : RNG.int(5, 7);
-      let type = RNG.r() < (last ? 0.55 : 0.3) ? 'S' : (RNG.chance(0.5) ? 'L1' : 'L2');
+      // More direct halls keep the castle walk as short as the first two dream chapters.
+      let type = RNG.r() < (last ? 0.8 : 0.75) ? 'S' : (RNG.chance(0.5) ? 'L1' : 'L2');
       if (type === 'L2' && A.entry === side) type = 'L1';
       let B, segs, pts, exit = 0, entry = 0;
       if (type === 'S') {
@@ -485,7 +490,7 @@ const LEVEL = (function () {
     L.start = zi === 0 ? { x: S.x - 0.3, z: S.z + 1.6 } : { x: S.x, z: S.z + (castle ? 1.5 : 1) };
     taken.push({ x: L.start.x, z: L.start.z, r: 2.5 });
     // zone 0: houses first — they turn part of the plaza rim into wall, which changes the distance field used below
-    if (zi === 0) {
+    if (L.theme === 'forest') {
       villageHouses(L, S, clearOfPath);
       for (const h of L.village.houses) taken.push({ x: h.x, z: h.z, r: Math.max(h.w, h.d) * 0.5 + 0.9 });
     }
@@ -531,7 +536,12 @@ const LEVEL = (function () {
     }
 
     // village edge (zone 0): owl on a stump, well, lamps, houses north of the plaza
-    if (zi === 0) buildVillageData(L, S, taken, addSolid, dW, clearOfPath);
+    if (L.theme === 'forest') buildVillageData(L, S, taken, addSolid, dW, clearOfPath);
+    if (zi === 0 && L.theme === 'bathroom') {
+      const p = spot(S, 1.5, 1, 60, 99, (x, z) => hyp(x - L.start.x, z - L.start.z) > 3.8 && clearOfPath(x, z, 1.8, 2));
+      L.npc = p || { x: S.x + 4, z: S.z - 1 };
+      taken.push({ x: L.npc.x, z: L.npc.z, r: 1.5 });
+    }
 
     // checkpoints: one on the way — at the way INTO its room, so Feza lights it before he meets that room's pack (which waits on the
     // far side, see packIn) — and one right before the boss arena (in the room before it, on the arena side; the castle too)
@@ -1703,6 +1713,8 @@ const LEVEL = (function () {
   }
   const LIQ_TEX = [null, 'lava', 'milk'];   // FLOOR[theme].lava → the liquid's TEX surface
   const FLOOR = {
+    bathroom: { a: 'bathTile', b: 'bathTile', c: 'bathTile', tA: 0xe0fff9, tB: 0xffd9ee, tC: 0xfff4c7, rough: [0.4, 0.4, 0.4], crispB: 1, crispC: 1, ao: 0.35, border: 0, out: 0x6599b1, outAmt: 0.65, anti: 0, macro: 0xe8ffff, trim: 0xffffff, trimM: 0 },
+    moon: { a: 'moonDust', b: 'moonDust', c: 'moonDust', tA: 0xe2edf3, tB: 0xeef4f6, tC: 0xd8eafa, rough: [0.93, 0.93, 0.85], crispB: 0, crispC: 0, ao: 0.32, border: 0, out: 0x263548, outAmt: 0.85, anti: 1, macro: 0xc3d8e8, speck: [0x8deaff, 0.25] },
     forest: { a: 'grass', b: 'dirt', c: 'cobble', tA: 0xdce6c8, tB: 0xf2e6da, tC: 0xf6ecdc, rough: [0.92, 0.96, 0.82], crispB: 0, crispC: 0, ao: 0.62, border: 0, out: 0x1e3a18, outAmt: 0.45, anti: 1, macro: 0xffe890 },
     cave: { a: 'caveFloor', b: 'caveSand', c: 'moss', lumC: 1.05, cScale: 1.6, tA: 0xe2dfd6, tB: 0xe2d8c8, tC: 0x89866f, rough: [0.55, 0.95, 0.9], crispB: 0, crispC: 0, ao: 0.75, border: 0, out: 0x04050a, outAmt: 0.92, anti: 1, macro: 0xd8d3c5, speck: [0xb59871, 2.6] },
     castle: { a: 'castleFloor', b: 'carpet', c: 'carpet', lumC: 1.5, tA: 0xcac4ba, tB: 0xc5b9bb, tC: 0xa3929d, tA2: 0xc5b395, tC2: 0x825561, rough: [0.3, 0.95, 0.95], crispB: 1, crispC: 1, ao: 0.62, border: 1, out: 0x302822, outAmt: 1, anti: 0, macro: 0xffffff },
@@ -1981,6 +1993,9 @@ const LEVEL = (function () {
     for (let py = 0; py < MH; py++) { const row = ((py / P) | 0) * L.W, o = py * MW; for (let px = 0; px < MW; px++) wall[o + px] = L.grid[row + ((px / P) | 0)] ? 0 : VL ? 1 - VL[o + px] : 1; }   // volcano / dairy: the liquid is no wall (no AO, no dark ground)
     let g = boxBlur(wall, MW, MH, 3); g = boxBlur(g, MW, MH, 2);
     let a = boxBlur(g, MW, MH, 7); a = boxBlur(a, MW, MH, 7);
+    // The dream worlds use the actual collision silhouette, with only a quarter-metre antialiased edge.
+    // No broad soft mask may make several metres of blocked scenery resemble playable floor.
+    if (!L._title && (L.theme === 'bathroom' || L.theme === 'moon')) { g = boxBlur(wall, MW, MH, 1); a = g; }
     if (L.theme === 'dairy') {   // the yogurt valley: G = a smooth floor coverage (0.5 = the walkable edge, in soft curves instead of the
       // cells' staircase); the shader outlines the walkable yogurt with it (a thin golden lip and a soft band inside), no dark AO
       const fc = new Float32Array(n);
@@ -2008,7 +2023,13 @@ const LEVEL = (function () {
     };
     const disc = (cx, cz, r, ramp, dst, na) => band([{ x: cx, z: cz }, { x: cx + 0.01, z: cz }], r, ramp, dst, na);
     const curvePts = l => (l.curve || []).map(q => ({ x: q[0], z: q[1] }));
-    if (L.theme === 'forest') {
+    if (L.theme === 'bathroom' || L.theme === 'moon') {
+      band(L.path, 1.05, 0.7, Rm, L.theme === 'moon' ? 0.15 : 0);
+      for (const l of L.links) if (!l.main) band(curvePts(l), 0.7, 0.7, Rm, 0);
+      for (const cp of L.checkpoints) disc(cp.x, cp.z, 1.7, 0.6, Bm, 0);
+      const ar = L.rooms.find(r => r.kind === 'boss');
+      if (ar) disc(ar.x, ar.z, ar.r * 0.8, 0.8, Bm, 0);
+    } else if (L.theme === 'forest') {
       band(L.path, 1.2, 1.3, Rm, 0.4);
       for (const l of L.links) if (!l.main) band(curvePts(l), 0.75, 1.1, Rm, 0.3);
       if (L.village) {
@@ -2111,9 +2132,22 @@ const LEVEL = (function () {
     B.dispose.push(mask);
     const m = floorMat(L.theme);
     m.userData.u.tMask.value = mask; m.userData.u.uMaskInv.value.set(1 / L.W, 1 / L.H);
+    m.userData.u.uDream.value = !L._title ? L.theme === 'moon' ? 2 : L.theme === 'bathroom' ? 1 : 0 : 0;
     let fg;
     if (L._town) fg = townFloorGeo(L);   // Veba Şehri: the streets end at the quays (the canals lie lower)
-    else { fg = new THREE.PlaneGeometry(L.W + 28, L.H + 28); fg.rotateX(-Math.PI / 2); fg.translate(L.W / 2, 0, L.H / 2); }
+    else {
+      const lunar = !L._title && L.theme === 'moon';
+      fg = new THREE.PlaneGeometry(L.W + 28, L.H + 28, lunar ? Math.ceil((L.W + 28) / 2) : 1, lunar ? Math.ceil((L.H + 28) / 2) : 1); fg.rotateX(-Math.PI / 2); fg.translate(L.W / 2, 0, L.H / 2);
+      if (lunar) {
+        const p = fg.attributes.position, d = chamfer(L.W, L.H, L.grid, 1);
+        for (let k = 0; k < p.count; k++) {
+          const x = p.getX(k), z = p.getZ(k), i = Math.floor(x), j = Math.floor(z), c = j * L.W + i;
+          const distance = i < 0 || j < 0 || i >= L.W || j >= L.H ? 8 : d[c];
+          p.setY(k, smooth01((distance - 2) / 3) * (.18 + .42 * (vnoise(x / 4, z / 4, L.seed + 84) * .5 + .5)));
+        }
+        fg.computeVertexNormals();
+      }
+    }
     const floor = new THREE.Mesh(fg, m);
     floor.receiveShadow = true; floor.name = 'floor';
     B.g.add(floor);
@@ -2192,7 +2226,7 @@ const LEVEL = (function () {
         uTintA2: { value: lin(th.tA2 ?? th.tA, th.tAk ?? 1) }, uTintC2: { value: lin(th.tC2 ?? th.tC, th.tCk ?? 1) },
         uMode: { value: new THREE.Vector4(th.crispB, th.crispC, th.ao, th.border) }, uOut: { value: new THREE.Vector4(oc.r, oc.g, oc.b, th.outAmt) },
         uTrim: { value: lin(th.trim ?? 0x967653, 0.9) }, uTrimM: { value: th.trimM ?? 0.9 },   // (trim: the gold inlay / curb line and how metallic it is)
-        uMacro: { value: lin(th.macro) }, uLumC: { value: th.lumC || 0 },
+        uMacro: { value: lin(th.macro) }, uLumC: { value: th.lumC || 0 }, uDream: { value: 0 },
         tGlow: { value: blackTex() }, uTime: TIME.u, uSpeck: { value: th.speck ? lin(th.speck[0], th.speck[1]) : new THREE.Color(0, 0, 0) },
         // liquid: lava (volcano, x = 1): TEX.lava scrolled + wobbled · milk / kefir (dairy, x = 2): TEX.milk moved along tFlow (a flow
         // map), lit and glossy. tGlow.a = 1 - liquid there. x mode · y 1/tile · z shore rim · w emissive gain
@@ -2213,7 +2247,7 @@ const LEVEL = (function () {
       vDecl: 'varying vec3 vLvW;',
       vBegin: 'vLvW = (modelMatrix * vec4(transformed, 1.0)).xyz;',
       fDecl: `uniform sampler2D tMask, tNoise, tA, tAn, tB, tBn, tC, tCn, tGlow, tLava, tLavaN, tFlow; uniform vec4 uSc, uMode, uOut, uLava; uniform vec2 uMaskInv;
-        uniform vec3 uTintA, uTintB, uTintC, uTintA2, uTintC2, uRough, uTrim, uMacro, uSpeck, uLavaT, uLiqA, uLiqB, uLiqC, uEdge; uniform vec4 uRip[4]; uniform float uLumC, uTime, uLiqR, uTrimM; varying vec3 vLvW;
+        uniform vec3 uTintA, uTintB, uTintC, uTintA2, uTintC2, uRough, uTrim, uMacro, uSpeck, uLavaT, uLiqA, uLiqB, uLiqC, uEdge; uniform vec4 uRip[4]; uniform float uLumC, uTime, uLiqR, uTrimM, uDream; varying vec3 vLvW;
         ${GLSL_NOISE}
         float lvHB(float h1, float h2, float t) {   // height-aware blend weight of layer 2
           t = clamp(t, 0.0, 1.0);
@@ -2285,6 +2319,14 @@ const LEVEL = (function () {
           lvCol = mix(lvCol, uTrim, ln * 0.85); lvTrim = max(lvTrim, ln);
         }
         lvCol = mix(lvCol, uOut.rgb, smoothstep(0.25, 0.95, lvM.a) * uOut.a);
+        if (uDream > .5) {
+          float outside = smoothstep(.43, .57, lvM.g);
+          vec3 ground = uDream > 1.5 ? vec3(.045,.072,.108) : vec3(.055,.17,.18);
+          float grain = .76 + .34 * cA.r + .16 * lvN.r;
+          lvCol = mix(lvCol * 1.12, ground * grain, outside);
+          float lip = (1.0 - smoothstep(.05,.28,abs(lvM.g-.5))) * .65;
+          lvCol = mix(lvCol, uDream > 1.5 ? vec3(.36,.48,.57) : vec3(.61,.86,.81), lip);
+        }
         float lvLv = 0.0, lvLqSh = 0.0; vec3 lvLvE = vec3(0.0), lvLqN = vec3(0.0, 0.0, 1.0);
         if (uLava.x > 1.5) {   // Çürüme Vadisi: flowing milk, kefir and strawberry milk (lit and glossy), fizzy bubbles popping, a foamy lip on the shore
           float lq = 1.0 - lvGs.a;
@@ -2421,6 +2463,8 @@ const LEVEL = (function () {
 
   // ── Theme lighting ──
   const THEME = {
+    bathroom: { moss: [0x68736e, 0], rim: [0xb6b9b3, .15], fog: [0x44454a, 34, 80], hemiSky: 0xb5bac0, hemiGround: 0x525359, hemi: .95, sunColor: 0xc5bbae, sun: 1.6, sunOffset: [-12,26,14], env: [0x5b626c,0x85787d,0x383b41,.9], bloom: .42, exposure: 1.15, fezaLight: .6, fezaLightColor: 0xa694ae, sat: .75, vig: .24 },
+    moon: { moss: [0x897b94,0], rim: [0xba9eaf,.2], fog: [0x22202d,27,78], hemiSky: 0xc1adbd, hemiGround: 0x453d50, hemi: .75, sunColor: 0xc5b6c9, sun: 1.05, sunOffset: [-12,26,14], env: [0x56465e,0x746675,0x25222c,.5], bloom: .52, exposure: 1.2, fezaLight: 1.5, fezaLightColor: 0xc6afc9, sat: .85, vig: .24 },
     forest: { moss: [0x383d46, 0.75], rim: [0x646e7c, 0.1], fog: [0x565e6a, 36, 84], hemiSky: 0x87909b, hemiGround: 0x484b50, hemi: 1.3585, sunColor: 0x89929c, sun: 2.6, sunOffset: [-12, 26, 14],
       env: [0x565e6a, 0x616a78, 0x2d3138, 1.0], bloom: 0.5, exposure: 1.18, fezaLight: 0, fezaLightColor: 0x795058, sat: 1.04 },
     cave: { moss: [0x3b4049, 0.35], rim: [0x575f6c, 0.14], fog: [0x17181c, 15, 42], hemiSky: 0xa2a4b5, hemiGround: 0x5b5362, hemi: .5712, sunColor: 0xa2a4b5, sun: 0.6, sunOffset: [-10, 26, 12],
@@ -7647,6 +7691,313 @@ const LEVEL = (function () {
   }
 
   // ── LEVEL.build ──
+  // Dream chapters share the safe winding layout, with their own handmade scenery.
+  // Large landmarks stay beyond the walkable edge; tiny pieces merge into the existing decor chunks.
+  function buildDream(L, B) {
+    if (L._title && L.theme === 'bathroom') { buildDreamTitle(L, B); return; }
+    const moon = L.theme === 'moon', rnd = B.rnd;
+    const sp = R.geo.dreamSphere || (R.geo.dreamSphere = keep(new THREE.SphereGeometry(1, 16, 10)));
+    const box = R.geo.dreamBox || (R.geo.dreamBox = keep(new THREE.BoxGeometry(1, 1, 1)));
+    const ring = R.geo.dreamRing || (R.geo.dreamRing = keep(new THREE.TorusGeometry(1, 0.12, 8, 28)));
+    const cyl = R.geo.dreamCyl || (R.geo.dreamCyl = keep(new THREE.CylinderGeometry(1, 1, 1, 18)));
+    const cone = R.geo.dreamCone || (R.geo.dreamCone = keep(new THREE.ConeGeometry(1, 1, 18)));
+    const bowl = R.geo.dreamCrater || (R.geo.dreamCrater = keep(new THREE.LatheGeometry([[0, 0.03], [0.24, 0.035], [0.47, 0.07], [0.68, 0.14], [0.85, 0.27], [1.0, 0.35], [1.13, 0.18], [1.2, 0.04]].map(q => new THREE.Vector2(...q)), 28)));
+    const put = (geo, x, y, z, sx, sy, sz, color, rx = 0, rz = 0) => dec(B, 'shiny', geo, mat4(x, y, z, 0, sx, sy, sz, rx, rz), lin(color));
+    const duck = (x, z, s = 1) => {
+      put(sp, x, 0.38 * s, z, 0.55 * s, 0.34 * s, 0.42 * s, 0xffd94a);
+      put(sp, x, 0.74 * s, z + 0.21 * s, 0.28 * s, 0.28 * s, 0.28 * s, 0xffe56b);
+      put(sp, x, 0.69 * s, z + 0.47 * s, 0.2 * s, 0.065 * s, 0.12 * s, 0xf39c42);
+      for (const sd of [-1, 1]) put(sp, x + sd * 0.16 * s, 0.8 * s, z + 0.42 * s, 0.034 * s, 0.048 * s, 0.03 * s, 0x34334e);
+    };
+    const paper = (x, z, s) => {
+      put(cyl, x, 0.48 * s, z, 0.42 * s, 0.95 * s, 0.42 * s, 0xfffaf0, Math.PI / 2);
+      put(sp, x, 0.48 * s, z + 0.49 * s, 0.14 * s, 0.14 * s, 0.022 * s, 0xb28e78);
+      put(box, x, 0.075, z + 0.85 * s, 0.64 * s, 0.1, 0.68 * s, 0xffffff);
+    };
+    const rocket = (x, z, s) => {
+      put(sp, x, 1.9 * s, z, 0.7 * s, 1.65 * s, 0.7 * s, 0xfff3dc);
+      put(cone, x, 3.6 * s, z, 0.7 * s, 1.2 * s, 0.7 * s, 0xf08eae);
+      put(ring, x, 2.1 * s, z + 0.61 * s, 0.32 * s, 0.32 * s, 0.32 * s, 0xf4bd69);
+      put(sp, x, 2.1 * s, z + 0.62 * s, 0.27 * s, 0.27 * s, 0.045 * s, 0x68cee8);
+      // Copper rivets, a star badge, a teal waist belt and three chunky landing shoes.
+      for (let k = 0; k < 8; k++) { const a = k * TAU / 8; put(sp, x + Math.sin(a) * 0.33 * s, (2.1 + Math.cos(a) * 0.33) * s, z + 0.68 * s, 0.025 * s, 0.025 * s, 0.025 * s, 0xffebbc); }
+      put(ring, x, 1.17 * s, z, 0.66 * s, 0.66 * s, 0.66 * s, 0x8cd4db, -Math.PI / 2);
+      for (const a of [0, 2.1, 4.2]) put(sp, x + Math.sin(a) * 0.7 * s, 0.08 * s, z + Math.cos(a) * 0.7 * s, 0.25 * s, 0.08 * s, 0.25 * s, 0xeaaac7);
+      for (const sd of [-1, 1]) put(cone, x + sd * 0.78 * s, 0.65 * s, z, 0.42 * s, 1.0 * s, 0.34 * s, 0x8bafe9, 0, -sd * 0.35);
+      put(cone, x, 0.23 * s, z, 0.24 * s, 0.8 * s, 0.24 * s, 0xffd45b, Math.PI);
+      glowAt(B, x, z, 2.5 * s, 0xffc96b, 0.16);
+    };
+    // A porcelain toilet at the beginning makes the daydream's origin visible.
+    const S = L.rooms[0], tx = S.x - S.r - 1.2, tz = S.z - 0.5;
+    if (!moon) {
+      put(sp, tx, 0.65, tz, 1.45, 0.65, 1.85, 0xfffcf8);
+      put(cyl, tx, 0.3, tz, 0.85, 0.6, 1.0, 0xe0f0ef);
+      put(ring, tx, 1.25, tz, 1.08, 1.45, 1.0, 0xaee5df, -Math.PI / 2);
+      put(sp, tx, 1.14, tz, 0.93, 0.04, 1.26, 0x79c7e5);
+      put(box, tx, 1.4, tz - 1.7, 2.25, 2.5, 0.7, 0xf4fcf8);
+      put(box, tx + 0.6, 2.74, tz - 1.65, 0.36, 0.08, 0.28, 0xffd87b);
+      duck(tx + 2.1, tz + 2.5, 0.8); paper(tx - 1.3, tz + 2.6, 1.2);
+    } else {
+      rocket(tx, tz, 0.9);
+    }
+    for (const rm of L.rooms) {
+      for (let k = 0; k < 12; k++) {
+        const a = k * TAU / 12 + rnd() * 0.15, rad = rm.r + (moon ? 3.5 : 1.6);
+        const x = rm.x + Math.sin(a) * rad, z = rm.z + Math.cos(a) * rad;
+        if (isFloor(L, x, z) || linkDist(L, x, z) < 3.4) continue;
+        if (moon) {
+          const s = k % 4 === 0 ? 1.55 + rnd() * 0.75 : 0.45 + rnd() * 0.85;
+          if (Array.from({ length: 12 }, (_, q) => q * TAU / 12).some(a2 => isFloor(L, x + Math.sin(a2) * s * 1.2, z + Math.cos(a2) * s * 1.2))) continue;
+          const shade = (px, py) => lin(0x74678e).lerp(lin(k & 1 ? 0xc5b9e2 : 0xbdb5de), clamp(py / 0.32, 0, 1));
+          // A sculpted concave bowl: dark centre, lit inner slope and a raised ragged lip.
+          const ck = new Kit(); ck.add(bowl, shade);
+          const cg = ck.build(); B.tmpGeo.push(cg); dec(B, 'shiny', cg, mat4(x, 0.012, z, 0, s, s, s), null);
+          for (let q = 0; q < 7; q++) { const a2 = q * TAU / 7 + 0.3; put(sp, x + Math.sin(a2) * s, s * 0.28, z + Math.cos(a2) * s, s * 0.13, s * 0.08, s * 0.14, q & 1 ? 0xb6a8d2 : 0xd5c8e5); }
+          if (k % 3 === 0) put(cone, x + s, 0.35, z, 0.24, 0.7, 0.24, 0x9fe3ed, 0, 0.2);
+        } else if (k % 4 === 0) paper(x, z, 0.8 + rnd() * 0.6);
+        else if (k % 4 === 1) duck(x, z, 0.75);
+        else if (k % 4 === 2) { put(sp, x, 0.18, z, 0.65, 0.18, 0.45, 0xe7b2d1); put(sp, x, 0.34, z, 0.55, 0.06, 0.36, 0xffe0ec); }
+      }
+    }
+    // Small bright pebbles / soap bubbles indicate the exact walkable boundary.
+    for (let z = 1; z < L.H - 1; z += 2) for (let x = 1; x < L.W - 1; x += 2) {
+      const c = z * L.W + x;
+      if (!L.grid[c] || L.dWall[c] > 1.5 || B.noDec[c]) continue;
+      const s = 0.1 + rnd() * 0.12;
+      put(sp, x + 0.4, s * 0.6, z + 0.4, s, s * 0.65, s, moon ? 0xd9d0f5 : 0xd4ffff);
+    }
+    buildDreamDressing(L, B);
+    buildDreamBoundary(L, B);
+    if (moon) {
+      buildDreamSky(L, B);
+      // Constellations are low, flat jewels beyond the paths, so Feza stays easy to see.
+      for (const rm of L.rooms) for (let k = 0; k < 5; k++) {
+        const x = rm.x + (rnd() - 0.5) * rm.r * 3.5, z = rm.z + (rnd() - 0.5) * rm.r * 3.5;
+        if (isFloor(L, x, z) || linkDist(L, x, z) < 3) continue;
+        put(sp, x, 0.25, z, 0.09, 0.09, 0.09, 0xffe9a0); glowAt(B, x, z, 1.8, 0xb8c8ff, 0.1);
+      }
+    } else {
+      // A paper rocket waits behind the boss's portal to carry the dream to the Moon.
+      if (L.exit) rocket(L.exit.x - 4.7, L.exit.z - 3, 0.8);
+    }
+  }
+
+  // Compact, reusable prop clusters: rooms and every connecting route get visible details.
+  // Low-poly geometry is merged with the existing chunk batches, rather than adding a draw call per prop.
+  function buildDreamBoundary(L, B) {
+    const moon = L.theme === 'moon', box = moon ? G.ico(0) : G.box(), grid = L.grid, W = L.W, H = L.H;
+    const info = L.dreamBoundary = { segments: 0, source: 'grid', outerWidth: moon ? .36 : .22 };
+    const put = (x, z, yaw, k) => {
+      const h = moon ? .13 + .025 * (k % 3) : .10;
+      dec(B, 'shiny', box, mat4(x, h * .45, z, yaw, moon ? .58 : 1, moon ? h * .8 : h, moon ? .17 : info.outerWidth), lin(moon ? [0x899eae, 0x74899a, 0x9aabb8][k % 3] : [0xb3e2db, 0xf2e7d4, 0xc4e3eb][k % 3]));
+      info.segments++;
+    };
+    // Every segment is on the blocked side of a true 1→0 grid edge. Connected doors have no edge and no curb.
+    // These are visual lips, never additional collision shapes or guessed circles around the rooms.
+    const off = info.outerWidth * .5;
+    for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
+      const c = j * W + i; if (!grid[c]) continue;
+      if (!j || !grid[c - W]) put(i + .5, j - off, 0, c);
+      if (j === H - 1 || !grid[c + W]) put(i + .5, j + 1 + off, 0, c + 1);
+      if (!i || !grid[c - 1]) put(i - off, j + .5, Math.PI / 2, c + 2);
+      if (i === W - 1 || !grid[c + 1]) put(i + 1 + off, j + .5, Math.PI / 2, c + 3);
+    }
+  }
+
+  function buildDreamDressing(L, B) {
+    const moon = L.theme === 'moon', rnd = B.rnd;
+    const sph = R.geo.ddSphere || (R.geo.ddSphere = keep(new THREE.SphereGeometry(1, 8, 5)));
+    const box = R.geo.ddBox || (R.geo.ddBox = keep(new THREE.BoxGeometry(1, 1, 1)));
+    const cyl = R.geo.ddCyl || (R.geo.ddCyl = keep(new THREE.CylinderGeometry(1, 1, 1, 10)));
+    const cone = R.geo.ddCone || (R.geo.ddCone = keep(new THREE.ConeGeometry(1, 1, 8)));
+    const tor = R.geo.ddRing || (R.geo.ddRing = keep(new THREE.TorusGeometry(1, 0.12, 5, 16)));
+    const hemi = R.geo.ddDome || (R.geo.ddDome = keep(new THREE.SphereGeometry(1, 12, 6, 0, TAU, 0, Math.PI / 2)));
+    const cr = R.geo.ddCrater || (R.geo.ddCrater = keep(new THREE.LatheGeometry([[0, .025], [.34, .03], [.65, .09], [.9, .25], [1, .3], [1.16, .04]].map(q => new THREE.Vector2(...q)), 14)));
+    const make = kind => {
+      const key = 'dreamCluster_' + kind; if (R.geo[key]) return R.geo[key];
+      const k = new Kit(), a = (g, c, p, s, r) => k.add(g, c, p, r || null, s);
+      const bottle = (x, z, col) => { a(cyl, col, [x, .32, z], [.15, .46, .15]); a(sph, col, [x, .55, z], [.15, .1, .15]); a(box, 0xfbe8bd, [x, .66, z], [.11, .12, .1]); a(box, 0xfbe8bd, [x + .09, .74, z], [.27, .07, .08]); a(box, 0xfff8e9, [x, .34, z + .153], [.18, .18, .018]); };
+      const brush = (x, z, col) => { a(cyl, col, [x, .75, z], [.025, .66, .025]); a(box, col, [x, 1.1, z], [.07, .15, .055]); a(box, 0xfffaf1, [x, 1.1, z + .05], [.066, .14, .05]); };
+      const duck = (x, y, z, s) => { a(sph, 0xffdc69, [x, y + .18 * s, z], [.29 * s, .18 * s, .24 * s]); a(sph, 0xffe783, [x, y + .38 * s, z + .1 * s], [.15 * s, .15 * s, .15 * s]); a(box, 0xf2a565, [x, y + .34 * s, z + .25 * s], [.17 * s, .04 * s, .1 * s]); for (const sd of [-1, 1]) a(sph, 0x58546f, [x + sd * .075 * s, y + .41 * s, z + .23 * s], [.016 * s, .022 * s, .015 * s]); };
+      if (kind === 'soap') { a(sph, 0xeaa8c9, [-.3, .16, 0], [.35, .14, .23]); a(sph, 0xffd7e8, [-.3, .29, 0], [.26, .035, .15]); bottle(.28, 0, 0x98d8d0); }
+      if (kind === 'brush') { a(cyl, 0xeab0ce, [-.2, .26, 0], [.22, .44, .22]); a(cyl, 0xbaf0ed, [-.2, .49, 0], [.17, .02, .17]); brush(-.27, 0, 0x8ba8df); brush(-.12, .04, 0xf1cc83); bottle(.32, -.03, 0xaed7de); }
+      if (kind === 'towels') { a(box, 0xdcbb9c, [0, .25, 0], [1.15, .12, .65]); for (const sd of [-1, 1]) a(box, 0xcda88e, [sd * .48, .12, 0], [.09, .25, .46]); for (let j = 0; j < 3; j++) { a(box, [0xe4b2cc, 0xb6dacf, 0xf3d99e][j], [-.1 + j * .05, .4 + j * .15, 0], [.83 - j * .12, .13, .42]); a(box, 0xffeedb, [-.1 + j * .05, .4 + j * .15, .216], [.68 - j * .12, .025, .015]); } duck(.45, .29, .12, .55); }
+      if (kind === 'paper') { for (const x of [-.23, .24]) { a(cyl, 0xfff9ed, [x, .23, 0], [.22, .38, .22], [Math.PI / 2, 0, 0]); a(sph, 0xc4a997, [x, .23, .195], [.08, .08, .008]); } a(box, 0xfff7e9, [.24, .05, .4], [.3, .035, .46]); duck(-.35, .05, .55, .65); }
+      if (kind === 'bath') { a(sph, 0xfff6e9, [0, .35, 0], [1.05, .34, .64]); a(tor, 0xc3e5d9, [0, .62, 0], [.94, .53, .75], [-Math.PI / 2, 0, 0]); a(sph, 0x92cadf, [0, .57, 0], [.88, .045, .47]); for (let j = 0; j < 6; j++) a(sph, j & 1 ? 0xf5efff : 0xd5f5fa, [-.65 + j * .25, .66 + (j % 2) * .06, -.18], [.16, .13, .14]); duck(.26, .61, .12, .7); a(cyl, 0xddbc8f, [-.82, .78, -.3], [.045, .48, .045]); a(box, 0xddbc8f, [-.68, 1.02, -.3], [.3, .075, .08]); }
+      if (kind === 'vanity') { a(box, 0xadccdb, [0, .49, 0], [1.08, .88, .54]); a(box, 0xfff0dc, [0, .96, 0], [1.23, .1, .7]); for (const sd of [-1, 1]) { a(box, 0xcde4e8, [sd * .26, .46, .286], [.46, .66, .025]); a(sph, 0xe9c588, [sd * .09, .54, .322], [.035, .035, .025]); } a(sph, 0xb7dce5, [0, 1.025, .02], [.38, .03, .23]); a(cyl, 0xe5c58b, [0, 1.12, -.19], [.034, .28, .034]); a(box, 0xe5c58b, [0, 1.28, -.1], [.07, .05, .22]); a(tor, 0xe9c69b, [0, 1.57, -.27], [.38, .38, .27]); a(sph, 0xa4cbd9, [0, 1.57, -.26], [.34, .34, .035]); }
+      if (kind === 'garden') { a(cyl, 0xe6b3c4, [0, .2, 0], [.24, .37, .24]); for (let j = 0; j < 5; j++) { const t = j * TAU / 5; a(sph, j & 1 ? 0xa8cda8 : 0x8ebda2, [Math.sin(t) * .2, .57 + (j % 2) * .1, Math.cos(t) * .12], [.08, .3, .04], [0, 0, Math.sin(t) * .6]); } }
+      if (kind === 'dome') { a(cyl, 0x9ab7d1, [0, .13, 0], [.8, .26, .72]); a(hemi, 0xbfd9e4, [0, .22, 0], [.79, .75, .7]); a(box, 0x7189b6, [0, .37, .61], [.32, .43, .12]); a(box, 0xd4f3fa, [0, .53, .68], [.18, .18, .022]); for (const sd of [-1, 1]) a(sph, 0x83b8d8, [sd * .46, .5, .48], [.16, .12, .03]); a(cyl, 0xd5c7e0, [.45, 1.04, -.1], [.025, .61, .025]); a(sph, 0xc5ecf4, [.45, 1.36, -.1], [.08, .08, .08]); }
+      if (kind === 'panels') { for (const sd of [-1, 1]) { a(cyl, 0xc0b7d3, [sd * .45, .35, 0], [.035, .7, .035]); a(box, 0xb9a8d1, [sd * .45, .63, 0], [.73, .09, .68], [.25, 0, 0]); for (let j = 0; j < 3; j++) a(box, 0x728bbd, [sd * .45 - .22 + j * .22, .69, 0], [.19, .025, .56], [.25, 0, 0]); } a(box, 0xd5c2e4, [0, .1, .2], [.27, .19, .25]); }
+      if (kind === 'satellite') { a(cyl, 0xb3a7c8, [0, .43, 0], [.075, .86, .075]); a(hemi, 0xcbdce8, [0, .9, 0], [.52, .25, .52], [0, 0, .45]); a(cyl, 0xe4d6bd, [.12, 1.08, 0], [.025, .5, .025], [0, 0, -.5]); a(sph, 0x9ee7ed, [.26, 1.3, 0], [.06, .06, .06]); a(box, 0x9586bd, [0, .15, 0], [.45, .25, .38]); }
+      if (kind === 'flags') { a(cyl, 0xd4cce3, [0, .65, 0], [.025, 1.3, .025]); a(box, 0xc8a4db, [.24, 1.04, 0], [.48, .28, .035]); a(sph, 0xffe3a9, [.23, 1.05, .025], [.08, .08, .01]); a(sph, 0xa5a0c5, [0, .045, 0], [.25, .06, .23]); }
+      if (kind === 'crystals') { for (let j = 0; j < 5; j++) { const t = j * 1.5, h = .22 + (j % 3) * .2; a(cone, j & 1 ? 0xa6d8ea : 0xd5b5e5, [Math.sin(t) * .26, h * .5, Math.cos(t) * .19], [.11, h, .11], [0, 0, Math.sin(t) * .16]); } a(sph, 0x9085b4, [0, .045, 0], [.39, .07, .29]); }
+      if (kind === 'craters') { for (let j = 0; j < 3; j++) { const s = .3 + j * .16; a(cr, (px, py) => lin(0x514669).lerp(lin(0xb1a1d0), clamp(py / .3, 0, 1)), [-.52 + j * .5, .01, (j % 2) * .37], s); } }
+      return R.geo[key] = keep(k.build());
+    };
+    const specs = { soap: [.62, .8], brush: [.58, 1.2], towels: [.72, .8], paper: [.7, .6], bath: [1.2, 1.05], vanity: [.72, 2], garden: [.36, .9], dome: [.9, 1.45], panels: [.93, .9], satellite: [.65, 1.4], flags: [.46, 1.35], crystals: [.45, .7], craters: [1.25, .25] };
+    const low = moon ? ['crystals', 'craters', 'panels', 'flags'] : ['soap', 'paper', 'towels', 'garden'];
+    const large = moon ? ['dome', 'satellite', 'panels'] : ['bath', 'vanity', 'brush', 'towels'];
+    const anchors = [], counts = L.dreamDecor = { routes: 0, rooms: 0, kinds: {}, triangles: 0 };
+    const noFloor = (x, z, r) => { for (let j = Math.floor(z - r); j <= z + r; j++) for (let i = Math.floor(x - r); i <= x + r; i++) if (i >= 0 && j >= 0 && i < L.W && j < L.H && L.grid[j * L.W + i] && hyp(i + .5 - x, j + .5 - z) < r + .71) return false; return true; };
+    const away = (x, z, r) => anchors.every(q => hyp(x - q.x, z - q.z) > r + q.r + .3);
+    const reserved = (x, z, r) => hyp(x - L.start.x, z - L.start.z) > r + 2.2 && !(L.boss && hyp(x - L.boss.x, z - L.boss.z) < r + 5) && (L.solids || []).every(q => !q.alive || hyp(x - q.x, z - q.z) > r + q.r + .25) && (L.spawns || []).every(q => hyp(x - q.x, z - q.z) > r + 1.0);
+    const place = (kind, x, z, yaw, s, room) => {
+      const [rr, h] = specs[kind], r = rr * s, outside = noFloor(x, z, r);
+      if (!away(x, z, r) || !reserved(x, z, r)) return false;
+      if (!outside && (!circleFree(L, x, z, r + .3) || linkDist(L, x, z) < r + 1.65 || h * s > 1.05)) return false;
+      const geo = make(kind), vis = dec(B, 'shiny', geo, mat4(x, .015, z, yaw, s, s, s), null);
+      if (!outside && kind !== 'craters') propSolid(L, x, z, r, 'dream-' + kind, [vis]);
+      anchors.push({ x, z, r }); counts[room ? 'rooms' : 'routes']++; counts.kinds[kind] = (counts.kinds[kind] || 0) + 1; counts.triangles += geo.index ? geo.index.count / 3 : geo.attributes.position.count / 3;
+      return true;
+    };
+    // Sample each curved link, including its bends and side passages. Offset to the true edge, not far out of view.
+    let index = 0;
+    for (const link of L.links) {
+      const pts = link.curve || [], step = Math.max(1, Math.round(4.4 / .35));
+      for (let j = 3; j < pts.length - 2; j += step) {
+        const p = pts[j], prev = pts[j - 2], next = pts[j + 2], dx = next[0] - prev[0], dz = next[1] - prev[1], len = hyp(dx, dz) || 1;
+        for (const sd of [-1, 1]) {
+          const kind = (index + (sd > 0 ? 1 : 0)) % 3 === 0 ? large[(index + 1) % large.length] : low[(index + (sd > 0 ? 1 : 0)) % low.length], r = specs[kind][0] * .82;
+          const nx = -dz / len * sd, nz = dx / len * sd;
+          for (const off of [2.4 + r, 3.0 + r, 3.6 + r]) {
+            const x = p[0] + nx * off, z = p[1] + nz * off;
+            if (noFloor(x, z, r) && place(kind, x, z, Math.atan2(-nx, -nz), .82, false)) break;
+          }
+        }
+        index++;
+      }
+    }
+    // Two clear introductory vignettes sit close enough to be seen beside Feza on the first playable screen.
+    place(moon ? 'dome' : 'bath', L.start.x - 3.4, L.start.z - .8, .3, .72, true);
+    place(moon ? 'panels' : 'vanity', L.start.x + 3.4, L.start.z - .7, -.25, moon ? .8 : .52, true);
+    // Low clusters inside the room rims remain visible while Feza is walking across their middle.
+    for (const rm of L.rooms) {
+      for (let j = 0; j < 12; j++) {
+        const a = j * TAU / 12 + .2, rad = rm.kind === 'start' ? 3.9 : rm.r * (rm.kind === 'boss' ? .86 : .58), x = rm.x + Math.sin(a) * rad, z = rm.z + Math.cos(a) * rad;
+        place(low[(j + index) % low.length], x, z, -a, .96, true);
+      }
+      // Broad silhouettes around each room make its setting clear even between encounters.
+      // They stand beyond the walkable tiles; entrances and connecting paths stay completely clear.
+      for (let j = 0; j < 10; j++) {
+        const a = j * TAU / 10 + .12, kind = large[(j + index) % large.length], r = specs[kind][0] * 1.15;
+        for (const off of [1.1, 1.8, 2.5]) {
+          const x = rm.x + Math.sin(a) * (rm.r + r + off), z = rm.z + Math.cos(a) * (rm.r + r + off);
+          if (noFloor(x, z, r) && place(kind, x, z, -a, 1.15, true)) break;
+        }
+      }
+      // A northern vignette, with room to walk in front: bathtub/vanity or a lunar outpost.
+      for (const sd of [-1, 1]) { const x = rm.x + sd * rm.r * .62, z = rm.z - rm.r * .62; place(large[(index + (sd > 0 ? 1 : 0)) % large.length], x, z, sd * .25, .95, true); }
+      index++;
+    }
+  }
+
+  function buildDreamSky(L, B) {
+    // A soft band of night sky supplies a distant horizon for this deliberately tilted storybook camera.
+    // Its transparent lower edge ends well above Feza and leaves the playable floor unobscured.
+    const skyGeo = new THREE.PlaneGeometry(1, 1), skyMat = new THREE.ShaderMaterial({ transparent: true, depthTest: false, depthWrite: false,
+      vertexShader: 'varying vec2 vUv; void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+      fragmentShader: 'varying vec2 vUv; float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);} void main(){float edge=smoothstep(0.0,.68,vUv.y); vec2 cell=floor(vUv*vec2(100.,22.));vec2 q=fract(vUv*vec2(100.,22.))-.5;float star=(1.-smoothstep(.025,.07,length(q)))*step(.982,hash(cell));vec3 c=mix(vec3(.045,.057,.14),vec3(.019,.028,.085),vUv.y)+star*vec3(.6,.75,1.);gl_FragColor=vec4(c,edge*.82);}' });
+    const sky = new THREE.Mesh(skyGeo, skyMat); sky.name = 'hayal_yildizli_ufuk'; sky.renderOrder = 28; sky.frustumCulled = false; B.g.add(sky); B.dispose.push(skyGeo, skyMat);
+    const tailSphere = R.geo.ddSkyTail || (R.geo.ddSkyTail = keep(new THREE.SphereGeometry(1, 10, 6)));
+    const ck = new Kit();
+    ck.add(tailSphere, 0xffecc3, [0, 0, 0], null, [.24, .17, .17]);
+    for (let q = 1; q < 5; q++) ck.add(tailSphere, q & 1 ? 0x9ad5eb : 0xc9b5ec, [-.5 - q * .25, 0, 0], null, [.8, Math.max(.025, .12 - q * .021), .03]);
+    const cg = ck.build(), cm = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: .82, depthTest: false, depthWrite: false, fog: false }); B.dispose.push(cg, cm);
+    const comets = [];
+    for (let k = 0; k < 3; k++) { const o = new THREE.Mesh(cg, cm); o.name = k === 2 ? 'hayal_meteor' : 'hayal_kuyrukluyildiz'; o.renderOrder = 31; o.frustumCulled = false; B.g.add(o); comets.push(o); }
+    // Camera-space anchors keep the distant sky below the top HUD, in portrait as well as landscape.
+    const right = new THREE.Vector3(), up = new THREE.Vector3(), forward = new THREE.Vector3();
+    const anchor = (o, sx, sy, radiusFraction, depth) => {
+      right.setFromMatrixColumn(camera.matrixWorld, 0); up.setFromMatrixColumn(camera.matrixWorld, 1); forward.setFromMatrixColumn(camera.matrixWorld, 2).negate();
+      const hh = Math.tan(camera.fov * Math.PI / 360) * depth;
+      o.position.copy(camera.position).addScaledVector(forward, depth).addScaledVector(right, (sx * 2 - 1) * hh * camera.aspect).addScaledVector(up, (1 - sy * 2) * hh);
+      o.quaternion.copy(camera.quaternion); o.scale.setScalar(hh * 2 * radiusFraction);
+    };
+    let t = 0; B.anim.push(dt => { t += dt; anchor(sky, .5, .06, .23, 30); sky.scale.x *= camera.aspect / .23; comets.forEach((o, k) => { const u = (t * (.095 + k * .012) + k * .34) % 1; anchor(o, .16 + .68 * u, .145 + k * .025 + Math.sin(u * Math.PI) * .01, k === 0 ? .023 : .017, 19); o.rotateZ(.06 + k * .035); }); });
+  }
+
+  // A close, fully three-dimensional storybook bathroom for the first screen.
+  // The actual hero sits on this porcelain seat; his animated book is part of FEZA.
+  function buildDreamTitle(L, B) {
+    const x = L.start.x, z = L.start.z;
+    L.readingSpot = { x, z, seatY: 0.91, face: 0 };
+    const sp = R.geo.titleBathSphere || (R.geo.titleBathSphere = keep(new THREE.SphereGeometry(1, 24, 16)));
+    const box = R.geo.titleBathBox || (R.geo.titleBathBox = keep(new THREE.BoxGeometry(1, 1, 1)));
+    const ring = R.geo.titleBathRing || (R.geo.titleBathRing = keep(new THREE.TorusGeometry(1, 0.08, 10, 40)));
+    const arch = R.geo.titleBathArch || (R.geo.titleBathArch = keep(new THREE.TorusGeometry(1, 0.1, 10, 36, Math.PI)));
+    const cyl = R.geo.titleBathCyl || (R.geo.titleBathCyl = keep(new THREE.CylinderGeometry(1, 1, 1, 24)));
+    const cone = R.geo.titleBathCone || (R.geo.titleBathCone = keep(new THREE.ConeGeometry(1, 1, 24)));
+    const childSeat = R.geo.titleChildSeat || (R.geo.titleChildSeat = keep(new THREE.TorusGeometry(1, 0.28, 12, 40)));
+    const put = (geo, px, py, pz, sx, sy, sz, color, rx = 0, rz = 0) => dec(B, 'shiny', geo, mat4(x + px, py, z + pz, 0, sx, sy, sz, rx, rz), lin(color));
+    // Layered floor, rounded pink skirting and an embroidered oval bath mat.
+    put(cyl, 0, -0.035, 0, 9, 0.12, 8.4, 0xf3e7df);
+    put(cyl, 0, 0.032, 0, 8.7, 0.035, 8.1, 0xc7e9e2);
+    for (let j = -6; j <= 5; j++) for (let i = -6; i <= 6; i++) put(box, i * 1.2, 0.055, j * 1.2, 1.16, 0.02, 1.16, (i + j) & 1 ? 0xd7f0e8 : 0xc2e5df);
+    put(sp, 0.2, 0.088, 1.35, 1.85, 0.06, 1.1, 0xe8b1c8);
+    put(sp, 0.2, 0.135, 1.35, 1.68, 0.028, 0.94, 0xf3c8d5);
+    for (let k = 0; k < 8; k++) { const a = k * TAU / 8; put(sp, 0.2 + Math.sin(a) * 1.47, 0.163, 1.35 + Math.cos(a) * 0.79, 0.07, 0.015, 0.07, 0xfff1ca); }
+    // A shallow alcove, warm enough to read as a cosy room rather than a game corridor.
+    put(box, 0, 2.05, -3.1, 8.8, 4.1, 0.34, 0xf0dddf);
+    put(box, 0, 1.9, -2.89, 4.8, 3.65, 0.09, 0xf7e9df);
+    put(arch, 0, 2.15, -2.72, 2.45, 2.1, 1.1, 0xe5b9c6);
+    for (const sd of [-1, 1]) { put(cyl, sd * 2.45, 1.12, -2.73, 0.21, 2.2, 0.21, 0xe5b9c6); put(sp, sd * 2.45, 0.11, -2.73, 0.31, 0.14, 0.29, 0xffefdc); }
+    put(box, 0, 0.17, -2.81, 8.9, 0.28, 0.18, 0xf9c8d9);
+    // Porcelain bowl, mint child seat, curved pedestal, cistern and a golden flush button.
+    put(sp, 0, 0.49, 0, 0.38, 0.37, 0.49, 0xfffaf1);
+    put(sp, 0, 0.24, -0.06, 0.22, 0.24, 0.28, 0xeff3e9);
+    put(sp, 0, 0.085, -0.04, 0.3, 0.09, 0.35, 0xfaf8ee);
+    put(childSeat, 0, 0.91, 0.02, 0.25, 0.33, 0.18, 0x9fd6cf, -Math.PI / 2);
+    put(sp, 0, 0.8, 0, 0.23, 0.02, 0.33, 0x81c8df);
+    put(box, 0, 0.96, -0.49, 0.64, 1.25, 0.27, 0xfff9ed);
+    put(sp, 0, 1.59, -0.49, 0.34, 0.045, 0.17, 0xf8f8eb);
+    put(sp, 0.15, 1.64, -0.49, 0.07, 0.018, 0.05, 0xf4c268);
+    // Paper holder and a tiny star stool, both beside the seat so the book and legs stay visible.
+    put(cyl, -0.93, 0.76, 0.05, 0.18, 0.36, 0.18, 0xfffaf4, Math.PI / 2);
+    put(sp, -0.93, 0.76, 0.24, 0.065, 0.065, 0.008, 0xd8b59d);
+    put(box, -0.93, 0.57, 0.27, 0.22, 0.22, 0.025, 0xfff8ee);
+    put(sp, 0, 0.22, 0.8, 0.58, 0.2, 0.25, 0xf7d686);
+    for (const sd of [-1, 1]) put(cyl, sd * 0.4, 0.13, 0.8, 0.07, 0.2, 0.07, 0xdab086);
+    // Round sky window with a crescent moon, a smiling sun and tied peach curtains.
+    put(sp, 3.17, 2.47, -2.87, 1.07, 1.16, 0.07, 0x8ecadf);
+    put(ring, 3.17, 2.47, -2.76, 1.03, 1.13, 0.8, 0xf7d190);
+    put(sp, 3.58, 2.78, -2.72, 0.23, 0.23, 0.018, 0xffedb1);
+    put(sp, 3.68, 2.85, -2.69, 0.2, 0.2, 0.018, 0x8ecadf);
+    for (let k = 0; k < 5; k++) put(sp, 2.7 + (k % 3) * 0.3, 2.03 + Math.floor(k / 3) * 0.4, -2.69, 0.035, 0.035, 0.012, 0xfff6d7);
+    for (const sd of [-1, 1]) { put(sp, 3.17 + sd * 1.04, 2.4, -2.57, 0.24, 1.26, 0.13, 0xf2b7b3); put(sp, 3.17 + sd * 1.03, 1.88, -2.39, 0.2, 0.06, 0.07, 0xffdaa0); }
+    // Wooden shelf: colorful books, a rubber duck, a rocket toy and a little framed forest.
+    put(box, -3.15, 1.52, -2.23, 1.72, 0.14, 0.65, 0xd9b392);
+    for (const sd of [-1, 1]) put(box, -3.15 + sd * 0.65, 1.37, -2.37, 0.12, 0.26, 0.32, 0xb68b75);
+    const books = [0xdda8c9, 0xa3cfdd, 0xf3d690, 0xb1d6ad];
+    for (let k = 0; k < 4; k++) { put(box, -3.75 + k * 0.2, 1.92 + (k % 2) * 0.05, -2.22, 0.15, 0.7 + (k % 2) * 0.1, 0.37, books[k]); put(box, -3.75 + k * 0.2, 1.93, -2.02, 0.11, 0.035, 0.015, 0xfff3d6); }
+    put(sp, -2.72, 1.75, -2.2, 0.22, 0.15, 0.17, 0xffd868); put(sp, -2.68, 1.95, -2.13, 0.11, 0.11, 0.11, 0xffe87d); put(sp, -2.68, 1.93, -2.0, 0.08, 0.025, 0.04, 0xf4aa58);
+    // Potted plants: individually tilted rounded leaves, copper pots, a flower in bloom.
+    for (const sd of [-1, 1]) {
+      put(cyl, sd * 3.5, 0.41, -0.7, 0.4, 0.62, 0.4, sd < 0 ? 0xdfad96 : 0xd6a4bb);
+      put(sp, sd * 3.5, 0.76, -0.7, 0.33, 0.05, 0.33, 0x9b816e);
+      for (let k = 0; k < 7; k++) { const a = k * TAU / 7; put(sp, sd * 3.5 + Math.sin(a) * 0.31, 1.14 + (k % 3) * 0.22, -0.7 + Math.cos(a) * 0.15, 0.14, 0.47, 0.06, k & 1 ? 0x94c6a3 : 0xb4d9ad, 0.1, Math.sin(a) * 0.7); }
+      put(sp, sd * 3.5, 1.89, -0.7, 0.14, 0.14, 0.09, 0xf2d087);
+      for (let k = 0; k < 5; k++) { const a = k * TAU / 5; put(sp, sd * 3.5 + Math.sin(a) * 0.18, 1.89 + Math.cos(a) * 0.18, -0.69, 0.12, 0.12, 0.055, 0xe9b0cd); }
+    }
+    // Two framed paintings: friendly sunshine and a small forest, drawn as physical little shapes.
+    for (const sd of [-1, 1]) { put(box, sd * 1.62, 2.37, -2.7, 0.9, 1.08, 0.12, 0xe7be83); put(box, sd * 1.62, 2.37, -2.62, 0.72, 0.88, 0.025, 0xfff5e0); }
+    put(sp, -1.62, 2.42, -2.57, 0.22, 0.22, 0.02, 0xf5cf7d);
+    for (const sd of [-1, 1]) put(sp, -1.62 + sd * 0.06, 2.46, -2.54, 0.017, 0.025, 0.01, 0x8c735f);
+    put(arch, -1.62, 2.35, -2.53, 0.065, 0.04, 0.3, 0xc58d77, 0, Math.PI);
+    for (const sd of [-1, 1]) put(cone, 1.62 + sd * 0.16, 2.4, -2.55, 0.13, 0.43, 0.03, sd < 0 ? 0x91bc9c : 0xa9ceaa);
+    // A three-dimensional imagination cloud: tiny planets and trees inside pearly bubbles.
+    const bubbleMat = new THREE.MeshStandardMaterial({ color: 0xdbf7ff, transparent: true, opacity: 0.13, roughness: 0.12, metalness: 0.12, depthWrite: false });
+    B.dispose.push(bubbleMat);
+    const thoughts = [[-0.63, 1.68, -0.37, 0.1], [-0.85, 1.93, -0.56, 0.16], [-1.05, 2.27, -0.66, 0.23], [-0.15, 3.18, -1.17, 0.86], [1.05, 3.21, -1.35, 0.51]];
+    const bubbles = [];
+    for (const q of thoughts) { const o = new THREE.Mesh(sp, bubbleMat); o.position.set(x + q[0], q[1], z + q[2]); o.scale.setScalar(q[3]); B.g.add(o); bubbles.push({ o, y: q[1] }); }
+    put(sp, -0.3, 3.0, -0.82, 0.28, 0.28, 0.25, 0xbad7f4);
+    put(ring, -0.3, 3.0, -0.82, 0.39, 0.18, 0.36, 0xf7dab2, 0.7);
+    for (const sd of [-1, 1]) { put(cone, 0.2 + sd * 0.17, 3.08, -1.0, 0.16, 0.4, 0.14, sd < 0 ? 0x8fc5a9 : 0xb3d8b3); put(cyl, 0.2 + sd * 0.17, 2.84, -1.0, 0.025, 0.2, 0.025, 0xba9272); }
+    put(sp, 1.06, 3.23, -1.0, 0.23, 0.23, 0.08, 0xffebba); put(sp, 1.16, 3.3, -0.98, 0.19, 0.19, 0.08, 0xbbd5ee);
+    let t = 0; B.anim.push(dt => { t += dt; bubbles.forEach((q, k) => { q.o.position.y = q.y + Math.sin(t * 1.1 + k) * 0.025; q.o.rotation.y = t * 0.08; }); });
+    glowAt(B, x, z - 1, 5, 0xffe4bd, 0.12);
+  }
+
   function build(L) {
     if (!L) return L;
     if (L.group) dispose(L);
@@ -7697,7 +8048,7 @@ const LEVEL = (function () {
     tp = lap('field', tp);
     buildFloor(L, B);
     tp = lap('floor', tp);
-    if (L.theme === 'forest') buildForest(L, B); else if (L.theme === 'dairy') buildDairy(L, B); else if (L.theme === 'cave') buildCave(L, B); else if (L.theme === 'volcano') buildVolcano(L, B); else if (L.theme === 'town') buildTown(L, B); else buildCastle(L, B);
+    if (L.theme === 'bathroom' || L.theme === 'moon') buildDream(L, B); else if (L.theme === 'forest') buildForest(L, B); else if (L.theme === 'dairy') buildDairy(L, B); else if (L.theme === 'cave') buildCave(L, B); else if (L.theme === 'volcano') buildVolcano(L, B); else if (L.theme === 'town') buildTown(L, B); else buildCastle(L, B);
     if (V) buildVillage(L, B);
     if(L.theme!=='dairy') dreadRoomDecor(L,B);
     tp = lap('theme', tp);

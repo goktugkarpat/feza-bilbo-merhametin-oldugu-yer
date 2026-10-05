@@ -106,6 +106,8 @@ const BILBO = (() => {
     ell(jaw,MUZZLE,[0,-.110,.255],[.265,.083,.29]);
     const tongue = joint(jaw, 'tongue', 0, -.062, .30);
     small(tongue, 0xc8757b, [0, 0, 0], [.064, .022, .075]);
+    const mouthAnchor = new THREE.Object3D(); mouthAnchor.name = 'Bilbo mouth';
+    mouthAnchor.position.set(0, -.025, .37); jaw.add(mouthAnchor);
     const legs = [];
     for (const front of [true, false]) for (const side of [-1, 1]) {
       const b=joint(body,(front?'fore':'hind')+side,side*.30,.75,front?.37:-.56);
@@ -182,13 +184,89 @@ const BILBO = (() => {
       mesh.frustumCulled = false; root.add(mesh); mesh.bind(skel); meshes.push(mesh);
     }
     owned.forEach(g => g.dispose());
-    let t = 0, stride = 0, run = 0, rest = 0, sit = 0, brace = 0, broken = 0, roar = 0, barkPrev = 0, blinkAt = 2.8, blink = 0;
+    let t = 0, stride = 0, run = 0, rest = 0, sit = 0, brace = 0, broken = 0, roar = 0, barkPrev = 0, blinkAt = 2.8, blink = 0, fetch = null, chew = 0, fetchYaw = 0;
+    const snacks = [], snackGeo = new THREE.SphereGeometry(1, 10, 8);
+    const snackMat = new THREE.MeshStandardMaterial({ color: 0xf4b593, roughness: .65, emissive: 0x8b4730, emissiveIntensity: .28 });
+    const boneGeo = new THREE.CylinderGeometry(.045, .045, .38, 10);
+    const boneMat = new THREE.MeshStandardMaterial({ color: 0xfff2d4, roughness: .65 });
+    const FETCH = { fly: .85, catch: .60, chew: .40, sprayGap: .15 };
+    function mouthWorld() { return mouthAnchor.getWorldPosition(new THREE.Vector3()); }
+    function removeSnack(s) { if (s.mesh.parent) s.mesh.parent.remove(s.mesh); }
+    function fetchBone(hero, targets = [], onHit, options = {}) {
+      if (fetch || snacks.length || !root.parent || !hero || (options.canLaunch && !options.canLaunch())) return false;
+      const bone = new THREE.Group();
+      const shaft = new THREE.Mesh(boneGeo, boneMat); shaft.rotation.z = Math.PI / 2; bone.add(shaft);
+      for (const side of [-1, 1]) for (const up of [-1, 1]) {
+        const knob = new THREE.Mesh(snackGeo, boneMat); knob.scale.set(.072, .067, .058); knob.position.set(side * .19, up * .045, 0); bone.add(knob);
+      }
+      bone.name = 'Bilbo thrown bone';
+      root.parent.add(bone);
+      fetch = { age: 0, stage: 'flight', bone, from: new THREE.Vector3(hero.x, (hero.y || 0) + 1.1, hero.z), targets: targets.slice(0, 5), onHit, options, next: 0, emitted: 0, puff: 0 };
+      bone.position.copy(fetch.from);
+      return true;
+    }
+    function emitTreat(f, index) {
+      const target = f.targets[index], origin = mouthWorld();
+      const angle = root.rotation.y + (index - 1) * .22;
+      const end = target && !target.dead ? new THREE.Vector3(target.x, (target.y || 0) + Math.max(.4, (target.height || 1) * .5), target.z) : origin.clone().add(new THREE.Vector3(Math.sin(angle) * 3, -.4, Math.cos(angle) * 3));
+      const mesh = new THREE.Mesh(snackGeo, snackMat); mesh.name = 'Bilbo tiny meat treat';
+      mesh.scale.set(.13, .09, .15); mesh.position.copy(origin); mesh.frustumCulled = false; root.parent.add(mesh);
+      snacks.push({ mesh, from: origin, end, target, onHit: f.onHit, canLaunch: f.options.canLaunch, routeClear: f.options.routeClear, age: 0, duration: .52 + Math.min(8, origin.distanceTo(end)) * .055 });
+      f.puff = .16;
+    }
+    function updateSnacks(dt) {
+      chew = Math.max(0, chew - dt);
+      for (let i = snacks.length - 1; i >= 0; i--) {
+        const s = snacks[i];
+        if (s.canLaunch && !s.canLaunch()) { removeSnack(s); snacks.splice(i, 1); continue; }
+        s.age += dt;
+        if (s.target && !s.target.dead) s.end.set(s.target.x, (s.target.y || 0) + Math.max(.4, (s.target.height || 1) * .5), s.target.z);
+        const u = clamp01(s.age / s.duration), before = s.mesh.position.clone();
+        s.mesh.position.lerpVectors(s.from, s.end, u); s.mesh.position.y += Math.sin(Math.PI * u) * .32;
+        s.mesh.rotation.set(s.age * 7, s.age * 4, s.age * 8);
+        if (s.routeClear && !s.routeClear(before.x, before.z, s.mesh.position.x, s.mesh.position.z)) { removeSnack(s); snacks.splice(i, 1); continue; }
+        if (u >= 1) { removeSnack(s); snacks.splice(i, 1); if (s.target && !s.target.dead && s.onHit) s.onHit(s.target); }
+      }
+      if (fetch) {
+        const f = fetch;
+        if (!root.parent || (f.options.canLaunch && !f.options.canLaunch())) { clearActions(); return; }
+        f.age += dt; f.puff = Math.max(0, f.puff - dt);
+        if (f.stage === 'flight') {
+          const u = clamp01(f.age / FETCH.fly), to = mouthWorld();
+          f.bone.position.lerpVectors(f.from, to, u); f.bone.position.y += Math.sin(Math.PI * u) * .75;
+          f.bone.rotation.set(f.age * 3, root.rotation.y + f.age * 4 * (1-u), .25 * Math.sin(u*Math.PI));
+          f.bone.scale.setScalar(1 - u * .16);
+          if (u >= 1) { f.stage = 'catch'; f.age -= FETCH.fly; }
+        } else if (f.stage === 'catch' || f.stage === 'chew') {
+          f.bone.position.copy(mouthWorld()); f.bone.quaternion.copy(root.quaternion); f.bone.rotateZ(.045 * Math.sin(t * 9));
+          f.bone.scale.setScalar(f.stage === 'chew' ? .84 * (1 - clamp01(f.age / FETCH.chew) * .4) : .84);
+          if (f.stage === 'catch' && f.age >= FETCH.catch) { f.stage = 'chew'; f.age -= FETCH.catch; chew = FETCH.chew; }
+          else if (f.stage === 'chew' && f.age >= FETCH.chew) { f.stage = 'spray'; f.age -= FETCH.chew; if(f.bone.parent)f.bone.parent.remove(f.bone); }
+        } else if (f.stage === 'spray') {
+          while(f.age >= f.next && f.emitted < Math.max(3, f.targets.length)) {
+            emitTreat(f, f.emitted++); f.next += FETCH.sprayGap;
+          }
+          if(f.emitted >= Math.max(3,f.targets.length) && f.puff <= 0)fetch = null;
+        }
+      }
+    }
+    function clearActions() {
+      if (fetch) { if (fetch.bone.parent) fetch.bone.parent.remove(fetch.bone); fetch = null; }
+      snacks.forEach(removeSnack); snacks.length = 0; chew = 0; fetchYaw = 0;
+    }
+    function fetchFacing() {
+      if(!fetch || (fetch.stage!=='chew' && fetch.stage!=='spray'))return null;
+      const target=fetch.targets.slice(Math.min(fetch.emitted,fetch.targets.length-1)).find(e=>!e.dead) || [...fetch.targets].reverse().find(e=>!e.dead);
+      if(!target)return null;
+      const origin=root.getWorldPosition(new THREE.Vector3());
+      return Math.atan2(target.x-origin.x,target.z-origin.z);
+    }
     function update(dt, state = {}) {
       dt = Math.min(Math.max(dt || 0, 0), .1); t += dt;
       const speed = Math.max(0, state.speed || 0), moving = speed > .10;
       run = smooth(run, clamp01(speed / 5.2), 10, dt);
       stride += speed * dt * 3.8;
-      rest = moving || state.bark > 0 ? 0 : rest + dt;
+      rest = moving || state.bark > 0 || fetch || chew > 0 ? 0 : rest + dt;
       broken=smooth(broken,state.armorBreak?1:0,state.armorBreak?7:3,dt);
       brace=smooth(brace,clamp01(state.guard||0)*(1-broken),16,dt);
       if((state.bark||0)>1.15&&barkPrev<.95)roar=1.30;
@@ -227,10 +305,46 @@ const BILBO = (() => {
       blink = Math.max(0, blink - dt);
       const lid = state.portrait ? 1 : 1 - .92 * Math.sin(Math.PI * clamp01(blink / .18));
       eyes.forEach(b => { b.scale.y = lid*.60;b.rotation.z= b.name.endsWith("1")&&!b.name.endsWith("-1") ? .20 : -.20; });
+      // Anticipation, tucked paws, floppy ears and a soft landing make the playful leap readable.
+      const leap = clamp01(state.pounce || 0), nibble = chew > 0 ? Math.sin(t * 25) * .07 + .12 : 0;
+      body.rotation.x -= .16 * leap;
+      for (const { b, shin, foot, front } of legs) {
+        b.rotation.x += (front ? -.9 : .55) * leap;
+        shin.rotation.x += (front ? .8 : -.6) * leap; foot.rotation.x -= .22 * leap;
+      }
+      ears.forEach(({ b, side }) => { b.rotation.x = -.22 * leap + .035 * run * Math.sin(stride + side); });
+      head.rotation.x += .09 * nibble - .10 * leap;
+      head.rotation.z += .055 * (1 - run) * Math.sin(t * .91) + .02 * nibble;
+      jaw.rotation.x += nibble + (run > .45 ? .065 + .025 * Math.sin(t * 8) : 0);
+      tongue.scale.setScalar(Math.max(state.portrait ? .72 : .1, run * .55, nibble > 0 ? .6 : 0, bark > .1 ? .8 : 0));
+      tail.rotation.y += (fetch || chew > 0 ? .18 * Math.sin(t * 13) : 0);
+      let actionYaw = 0;
+      if (fetch) {
+        const f = fetch, hold = f.stage === 'catch' || f.stage === 'chew';
+        if (f.stage === 'flight') {
+          const aim = root.worldToLocal(f.bone.position.clone());
+          actionYaw = Math.max(-.75, Math.min(.75, Math.atan2(aim.x, Math.max(.25, aim.z - .5))));
+          head.rotation.x -= .16 * Math.sin(Math.PI * clamp01(f.age / FETCH.fly));
+          jaw.rotation.x = .04 + .31 * clamp01(f.age / FETCH.fly);
+        } else if (hold) {
+          head.rotation.x += .035 * Math.sin(t * 10);
+          jaw.rotation.x = f.stage === 'catch' ? .24 : .18 + .045 * Math.sin(t * 18);
+          tongue.scale.setScalar(.12); ears.forEach(({b,side})=>b.rotation.z+=side*.08);
+        } else {
+          const target=f.targets[Math.min(f.emitted,f.targets.length-1)];
+          if(target&&!target.dead){const aim=root.worldToLocal(new THREE.Vector3(target.x,0,target.z));actionYaw=Math.max(-.8,Math.min(.8,Math.atan2(aim.x,Math.max(.3,aim.z-.5))));}
+          const puff=clamp01(f.puff/.16);jaw.rotation.x=.12+.28*puff;head.rotation.x-=.09*puff;
+        }
+        tail.rotation.y += .23 * Math.sin(t * 11); eyes.forEach(b=>b.scale.y*=.93);
+      }
+      fetchYaw = smooth(fetchYaw, actionYaw, 10, dt); head.rotation.y += fetchYaw;
+      // Update the geometry after posing so catch and every launch use the animated jaw in this very frame.
+      root.updateMatrixWorld(true); updateSnacks(dt);
     }
     update(0);
-    function dispose() { meshes.forEach(m => m.geometry.dispose()); skel.dispose(); }
-    return { root, update, dispose, bones, meshes };
+    function dispose() { clearActions(); meshes.forEach(m => m.geometry.dispose()); snackGeo.dispose(); snackMat.dispose(); boneGeo.dispose(); boneMat.dispose(); skel.dispose(); }
+    return { root, update, dispose, bones, meshes, mouthAnchor, fetchBone, fetchFacing, clearActions, isFetching: () => !!fetch || snacks.length > 0,
+      fetchStage: () => fetch ? fetch.stage : snacks.length ? 'spray' : 'idle' };
   }
 
   let portraitUrl = null;

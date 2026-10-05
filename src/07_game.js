@@ -97,9 +97,9 @@ const GAME = (() => {
   const DIFF = {
     // Normal only: better gear keeps more of its advantage; the wizard casts a little faster and a won boss game
     // rewards the following attacks. Zor keeps the original scaling, wand timing and bonus damage.
-    normal: { powerK: 0.55, bossPower: 0.75, wandSwing: 0.5, bonusHit: 1.25 },
+    normal: { bossLength: .57, powerK: 0.55, bossPower: 0.75, wandSwing: 0.5, bonusHit: 1.25 },
     // Repeat adventures use a saved start-of-round reference, never the currently equipped item.
-    repeat: { health: [140, 185, 250, 310, 370, 440], damageGrowth: 0.5, healthGrowth: 0.35, pressure: 0.06, maxPressureRounds: 5 },
+    repeat: { health: [105, 120, 140, 185, 250, 310, 370, 440], damageGrowth: 0.5, healthGrowth: 0.35, pressure: 0.06, maxPressureRounds: 5 },
     hp: 3.4,            // normal enemy hp (was 2.6; zone 0 jelly: ~6 sword hits at the start)
     // × per zone (Round 3: Feza now reaches the castle a zone stronger, so it went from 0.9 back to 1; Round 4: the kefir
     // valley is gentle, and Feza now reaches the cave ~2 levels stronger, so the later zones went up to feel as before)
@@ -108,14 +108,14 @@ const GAME = (() => {
     // Round 5: the town sits between the volcano and the castle (ZONES hpMult 2.55; the castle's went 2.8 → 3.0 and Feza
     // arrives there ~2 levels and an item level stronger: see power.dmg). test/r5_game_kid.html (the 6-zone game, 35 kid-bot
     // runs of all 3 classes): a town guard takes ~9 hits, as a castle toy soldier does.
-    zoneHp: [1.15, 1.1, 1.3, 1.08, 1.08, 1.05],
+    zoneHp: [.85, .92, 1.15, 1.1, 1.3, 1.08, 1.08, 1.05],
     hpType: { golem: 0.7, salyangoz: 0.8, kaplumbaga: 0.85, peynir: 0.8, tellal: 0.75 },   // the big slow golem, the slow bubble snail, the shell turtle, the cheese wedge and the drummer are tanky enough already
     eliteHp: 3.4,       // elites: hp × this (on top of hp; was 3)
     eliteDmg: 1.5,      // elites: damage × this (their hp went up: their punch stays)
     // A strong sword must not turn the creatures happy in one or two hits (lots of treasure, or the next adventure round):
     // above the usual sword damage for the zone (× the round's hp factor), creature hp grows with Feza's damage^k.
     // (Round 5: the town 50; the castle 54 → 58, Feza now comes through the town first)
-    power: { dmg: [20, 28, 36, 44, 50, 58], k: 0.8 },
+    power: { dmg: [12, 16, 20, 28, 36, 44, 50, 58], k: 0.8 },
     bossHp: 11.5,       // dragon hp at most (a button-masher with a good sword needs about a minute; Round 4: 8 → 8.8, Feza comes stronger;
                         //    Round 5: → 10, after the town he meets it at lvl 15 with dmg 73–77: capped at 14 080 hp the kid bots
                         //    needed 53–70 s, at 16 000 58–86 s; Round 5 QA: the warrior masher, always at the cap, took 57–63 s
@@ -150,7 +150,8 @@ const GAME = (() => {
       //  lavkaplumbaga 205 → 165 (Round 5 already ran long, 71 s; hiding behind the rocks costs time): ignore 44–69 avg 58
       //    (47 / 63 / 62), go 49–78 avg 64 (58 / 67 / 66), a flip in 20 of 21 (go)
       //  sovalye 133 → 138 (below): ignore 48–86 avg 67 (69 / 75 / 59), go 48–82 avg 64 (61 / 72 / 59), carrot fed in 21 of 21
-      //  Boss naps: 8 in 252 fights, 5 of them Çürük Taç at dmg 12 (Round 5: 8 in 72). Hardcore (&hc&hcboss: god mode except in boss fights): 6 of 6 won.
+      kopukusta:     { per: 72, lo: 10, hi: 24, dmg: 7 },
+      aytavsan:      { per: 85, lo: 12, hi: 30, dmg: 9 },
       kraljole:      { per: 106, lo: 15, hi: 34, dmg: 11 },
       kefirdev:      { per: 135, lo: 18, hi: 40, dmg: 16 },   // Round 4: Veba Rahibi, ~35–50 s for a button-masher (Round 6: 40–55)
       kostebekusta:  { per: 114, lo: 21, hi: 48, dmg: 26 },   // (Round 4: met ~2 levels stronger: 23 → 26)
@@ -180,7 +181,7 @@ const GAME = (() => {
     // treasure (the warrior's helmet +200 hp, the wizard's cape 41 % armour): at 1.33 it napped the kid bots 0.3× (target
     // 1–2) → 1.7 (1.2× over the 3 classes: warrior 0.6–1, wizard 2, hybrid 1–2; the finger-holding bot naps a wizard /
     // hybrid 2–5× there, as often as in the cave). The town at 1.22 napped them more than the castle → 1.12 (0.8×).
-    zoneDmg: [1.35, 1.15, 1.4, 1.2, 1.12, 1.7],
+    zoneDmg: [.7, .8, 1.35, 1.15, 1.4, 1.2, 1.12, 1.7],
     atkCd: 0.75,        // enemy attack cooldown (was 0.85; wind-ups unchanged, always ≥ T.windMin)
     xp: 1.1,            // xp per enemy (level pace stays about the same although fights are longer)
     heart: 0.1,         // a heart heals this fraction of max hp (was 0.12)
@@ -201,15 +202,24 @@ const GAME = (() => {
   // v3: only manual saves (Kaydet) from now on — the automatic v2 saves are ignored, so every device starts fresh once.
   // Older keys (.v1, .v2) stay untouched on the device as leftovers. Keep in sync with 09_ui.js.
   const SAVE_KEY = 'fezaBilboMerhamet.save.v1';
-  const LEGACY_HARDCORE_KEY = 'fezaKotulereKarsi.hardcore.v1';
-  const LEGACY_IGNORED_KEY = 'fezaKotulereKarsi.legacyHardcoreIgnored';
+  const MAP_KEY = 'fezaBilboMerhamet.gecitHaritasi.v1';
+  let mapOpen = false;
+  try { mapOpen = localStorage.getItem(MAP_KEY) === 'acik'; } catch(e) {}
+  function mapUnlocked() { return mapOpen || P.ng > 0; }
+  function travelTo(index) {
+    const Z=zones(); if(!mapUnlocked() || !Z || !Number.isInteger(index) || index<0 || index>=Z.length || GAME.state==='transition' || P.dead)return false;
+    if(GAME.state==='title') { const saved=readSave(); if(saved)applySave(saved); else resetPlayer(); }
+    GAME.paused=false; aud('stopVoice'); C.keyX=C.keyZ=0; loadZone(index); return true;
+  }
+  const LEGACY_HARDCORE_KEY = 'fezaBilboMerhamet.hardcore.v1';
+  const LEGACY_IGNORED_KEY = 'fezaBilboMerhamet.legacyHardcoreIgnored';
   const HC = { hp: 1.35, bossHp: 1.25, dmg: 1.5, bossDmg: 1.45, special: 1.55, speed: 1.12, cd: 0.78, wind: 0.85 };
   let hard = false, legacyIgnored = false;   // one adventure/save flow; difficulty changes only combat
 
   // save layout version (sv): 3 = Round 3's zone order (orman, magara, yanardag, kale); 4 = Round 4's (orman, kefir, magara,
   // yanardag, kale) — from sv 4 on the save also names its zone (zid), so a later reorder cannot move a save; 5 = Round 5's
   // (… yanardag, sehir, kale = ZORDER).
-  const SAVE_V = 5;
+  const SAVE_V = 6;
   const WORDS = ['Son.', 'Hüküm.', 'Kül.', 'Merhamet yok.'];
   // Lightsaber blade colours (fallback when ITEMS.bladeColor is missing; gokkusagi cycles through the rainbow).
   const BLADE_COL = { tahta: '#c8f4ff', demir: '#3f9dff', kristal: '#3dff66', ates: '#ff3344', yildiz: '#b455ff' };
@@ -226,7 +236,7 @@ const GAME = (() => {
   const ELITE_AD = { kostebek: 'Kocaman Köstebek', salyangoz: 'Kocaman Salyangoz', kaplumbaga: 'Kocaman Kaplumbağa', ateskusu: 'Kocaman Ateş Kuşu',
     yogurt: 'Kocaman Yoğurt', kaymak: 'Kocaman Kaymak', nobetci: 'Kocaman Nöbetçi', simitci: 'Kocaman Simitçi', supurgeci: 'Kocaman Süpürgeci' };
   // said once per game, the first time that type notices Feza (the flags go into the save)
-  const FIRST_LINE = { kostebek: 'ilk_kostebek', salyangoz: 'ilk_salyangoz', kaplumbaga: 'ilk_kaplumbaga', ateskusu: 'ilk_ateskusu',
+  const FIRST_LINE = { kakacik:'ilk_kakacik', cisdamlasi:'ilk_cisdamlasi', sabunkopugu:'ilk_sabunkopugu', ayponpon:'ilk_ayponpon', yildizcik:'ilk_yildizcik', kratercik:'ilk_kratercik', kostebek: 'ilk_kostebek', salyangoz: 'ilk_salyangoz', kaplumbaga: 'ilk_kaplumbaga', ateskusu: 'ilk_ateskusu',
     yogurt: 'ilk_yogurt', kaymak: 'ilk_kaymak', kopuk: 'ilk_kopuk',
     nobetci: 'ilk_nobetci', simitci: 'ilk_simitci', supurgeci: 'ilk_supurgeci', tellal: 'ilk_tellal' };
   // s of quiet after a first-sight line ENDS before the next one (three new kinds in one kefir room: the next one waits a
@@ -235,7 +245,8 @@ const GAME = (() => {
   const RAR_COL = ['#f4f4f4', '#5aa8ff', '#ffd23f', '#ff8a1c'];
   const VARIANTS = { jole: ['green', 'pink', 'blue', 'purple'] };
   // the order of DIFF's per-zone arrays (Round 4: the kefir valley is 1; Round 5: the walled town is 4, the castle 5)
-  const ZORDER = ['orman', 'kefir', 'magara', 'yanardag', 'sehir', 'kale'];
+  const ZORDER = ['tuvalet', 'ay', 'orman', 'kefir', 'magara', 'yanardag', 'sehir', 'kale'];
+  const ZORDER5 = ['orman', 'kefir', 'magara', 'yanardag', 'sehir', 'kale'];
   const ZORDER4 = ['orman', 'kefir', 'magara', 'yanardag', 'kale'];   // Round 4's order: what a zone number means in an sv < 5 save
   const ROLLERS = { kaplumbaga: 1, kaymak: 1, supurgeci: 1 }; // melee by rolling / gliding along a lane (EDEF kind 'roll' / 'glide' / 'slide' too)
   const HOPPERS = { yogurt: 1 };                             // melee by hopping at Feza and bumping him (EDEF kind 'hop' too)
@@ -250,6 +261,8 @@ const GAME = (() => {
   // ones' hp / damage × this (default 1).
   // Round 6: bonus = its arena bonus idea (BONUS, bonusStep).
   const BOSS_KIT = {
+    kopukusta: { lines: { giris: 'kopukusta_giris', bitti: 'kopukusta_bitti' }, add: 'sabunkopugu', at: [.5], n: [2], roar: 1.6, col: '#7ee8df', dream: true },
+    aytavsan: { lines: { giris: 'aytavsan_giris', bitti: 'aytavsan_bitti' }, add: 'ayponpon', at: [.5], n: [2], roar: 1.7, col: '#c9bbff', dream: true },
     kraljole:      { lines: { giris: 'kraljole_giris', bitti: 'kraljole_bitti' }, add: 'jole', at: [0.66, 0.33], n: [3, 3], roar: 1.1, roarSfx:'rotRoar', col: '#b6977c', bonus: 'tac' },
     kostebekusta:  { lines: { giris: 'usta_giris', bitti: 'usta_bitti' }, add: 'kostebek', at: [0.66, 0.33], n: [3, 3], roar: 1, roarSfx:'graveRoar', col: '#aa9578', summonAt: 0.8, bonus: 'avla' },
     lavkaplumbaga: { lines: { giris: 'kaplumbaga_giris', bitti: 'kaplumbaga_bitti' }, add: 'kaplumbaga', at: [0.5], n: [2], roar: 0.95, roarSfx:'ashRoar', col: '#c98658', bonus: 'serintas' },
@@ -390,7 +403,8 @@ const GAME = (() => {
   let L = null, H = null, Bilbo = null, gt = 0, hitstop = 0, inited = false;
   const bilboPos = { x: 0, z: 0 };
   const BILBO_SCALE = 0.78;
-  let bilboFace = 0, bilboBark = 0, bilboNext = 0, bilboVoiceNext = 0;
+  let bilboFace = 0, bilboBark = 0, bilboNext = 0, bilboVoiceNext = 0, boneAt = -99;
+  const BONE_CD = 8;
   let bilboFollow = null, bilboTarget = null;
   let bilboGuardArmed = true, bilboGuardAt = -99;
   // Bilbo's armour is a combat resource. He retreats to Feza when it breaks.
@@ -809,6 +823,7 @@ const GAME = (() => {
   function placeBilbo() {
     if (!Bilbo) return;
     const p = bilboSpot(); bilboPos.x = p.x; bilboPos.z = p.z;
+    if(Bilbo.clearActions)Bilbo.clearActions(); boneAt=-99;
     bilboFace = P.face; bilboBark = 0; bilboNext = gt + 1; bilboVoiceNext = gt + 1; bilboTarget = null;
     petAttackTarget = null; PET.maxHp = 180 + P.lvl * 24; PET.hp = PET.maxHp;PET.retreat=false;
     PET.lastHit = gt-10; PET.lastBite = gt-10; PET.guardUntil=-99; P.pet=PET;
@@ -866,6 +881,17 @@ const GAME = (() => {
       guard:PET.hp>0&&!PET.retreat?Math.max(0,1-(gt-PET.lastHit)/.55):0,
       armorBreak:PET.retreat});
   }
+  function bone() {
+    if(!Bilbo || GAME.state!=='play' || GAME.paused || P.dead || finale || merchantNear() || gt<storyUntil || gt<boneAt || Bilbo.isFetching())return false;
+    const targets=enemies.filter(e=>!e.dead && !hidden(e) && inView(e.x,e.z) && dist2(e.x,e.z,bilboPos.x,bilboPos.z)<sq(8+e.r) && los(bilboPos.x,bilboPos.z,e.x,e.z)).sort((a,b)=>dist2(a.x,a.z,bilboPos.x,bilboPos.z)-dist2(b.x,b.z,bilboPos.x,bilboPos.z)).slice(0,5);
+    const heldLevel=L;
+    const ok=Bilbo.fetchBone(P.pos,targets,e=>{
+      if(L!==heldLevel || GAME.state!=='play' || P.dead || e.dead || hidden(e) || !enemies.includes(e) || merchantNear() || gt<storyUntil || !los(bilboPos.x,bilboPos.z,e.x,e.z))return;
+      damage(e,Math.max(8,Math.round(heroDamageNow()*1.5)),{kind:'bilbo',silent:true});
+      if(!e.boss){e.stun=Math.max(e.stun||0,1.2);cancelWindup(e);}burst('dread',e.x,1,e.z,{count:10});sfx('pop',{vol:.4});
+    }, {canLaunch:()=>L===heldLevel && GAME.state==='play' && !P.dead, routeClear:los});
+    if(!ok)return false;boneAt=gt+BONE_CD;C.cheerT=Math.max(C.cheerT,.5);sfx('whoosh',{vol:.5});emit('bone');return true;
+  }
   // One rescue per low-health episode; healing to the threshold rearms it.
   // After enemy updates: an interrupted boss cannot resume its old attack in this frame.
   function bilboProtect() {
@@ -882,7 +908,7 @@ const GAME = (() => {
     shake(.12);
     ftext(bilboPos.x, 2.1, bilboPos.z, 'Demir Diş!', 'word');
     PET.guardUntil = gt + 4;
-    const phases = { kraljole: 'blush', kefirdev: 'hiccup', kostebekusta: 'dizzy',
+    const phases = { kopukusta: 'giggle', aytavsan: 'giggle', kraljole: 'blush', kefirdev: 'hiccup', kostebekusta: 'dizzy',
       lavkaplumbaga: 'flip', sovalye: 'dizzy', ejderha: 'charmed' };
     for (const e of enemies) {
       if (e.dead || hidden(e) || dist2(e.x, e.z, bilboPos.x, bilboPos.z) > (BILBO_GUARD.radius + e.r) ** 2 ||
@@ -913,6 +939,7 @@ const GAME = (() => {
     const seed = Q.has('tohum') ? ((parseInt(Q.get('tohum'), 10) || 1) + i * 7919) >>> 0 : (Math.random() * 4294967295) >>> 0;
     if (hasLevel()) {
       L = LEVEL.generate(i, seed);
+      L._title = title;
       LEVEL.build(L);
       GAME.L = L;
       fezaLightBase();   // the theme's own hero light (LEVEL.build set it); the lightsaber tint is added on top every frame
@@ -923,6 +950,10 @@ const GAME = (() => {
     const st = (L && L.start) || { x: 0, z: 0 };
     P.checkpoint = { x: st.x, z: st.z };
     placeHero(st.x, st.z, 0);   // facing the camera: the kid sees Feza's face
+    if(title && L && L.readingSpot) {
+      const r=L.readingSpot; P.pos.set(r.x,r.seatY-.40*baseScale,r.z);P.face=r.face||0;
+      if(H) {H.root.position.copy(P.pos);H.root.rotation.y=P.face;H.update(0,{sitRead:true,attack:-1,cast:-1});}
+    }
     P.dead = false; C.deadT = 0; C.invuln = 1;
     if (L) L._title = title;
     if (!title) populate();
@@ -1163,14 +1194,14 @@ const GAME = (() => {
     if (P.ng) {
       const magic = P.heroClass === 'hybrid' && !DIFF.boss[type];
       const power = Math.max(c.lo, roundDamage(magic) * (magic ? DIFF.bossHybridK : 1));
-      return Math.max(1, Math.round(c.per * power * roundPressure() * (tough ? HC.bossHp : 1)));
+      return Math.max(1, Math.round(c.per * power * roundPressure() * (tough ? HC.bossHp : DIFF.normal.bossLength)));
     }
     let power = clamp(ref, c.lo, c.hi);
     if (!tough) {   // weak gear keeps its help; above the usual zone damage, an upgrade buys a shorter fight
       const usual = clamp(zpick(DIFF.power.dmg), c.lo, c.hi);
       if (power > usual) power = usual + (power - usual) * DIFF.normal.bossPower;
     }
-    return Math.max(1, Math.round(c.per * power * (1 + 0.5 * P.ng) * (tough ? HC.bossHp : 1))); };
+    return Math.max(1, Math.round(c.per * power * (1 + 0.5 * P.ng) * (tough ? HC.bossHp : DIFF.normal.bossLength))); };
   // Variant of a creature: LEVEL's spawn.variant, else one of the zone's (ZONES[i].variants, e.g. lava jellies), else a random colour.
   function variantFor(type, sp) {
     if (sp && sp.variant) return sp.variant;
@@ -1303,7 +1334,7 @@ const GAME = (() => {
       for (const o of enemies) if (o !== e && o.pack === e.pack && !o.aggro && !o.boss) setAggro(o, false);
     }
   }
-  const ZONE_FIRST = { orman: { jole: 1, mantar: 1 } };   // zone id → the creatures whose first sighting says the zone's name line
+  const ZONE_FIRST = { tuvalet: { kakacik: 1, cisdamlasi: 1, sabunkopugu: 1 }, orman: { jole: 1, mantar: 1 } };   // zone id → first-sighting introduction
   function firstLineFor(type) {
     const Z = zdef();
     if (ZONE_FIRST[Z.id] && ZONE_FIRST[Z.id][type] && F.zl && !F.zl[P.zone] && Z.line) return Z.line;
@@ -2074,6 +2105,7 @@ const GAME = (() => {
     if (q) {
       for (const egg of q.eggs) { removeObj(egg.pool.root); egg.pool.used = false; }
       clearBanners(q, cheer);
+      clearDreamBonus(q);
       clearBonus(b, q, cheer);
       clearRaidMove(q); b.encounter = null;
     }
@@ -2383,6 +2415,7 @@ const GAME = (() => {
       }
     }
     if (b.type === 'sovalye') sancakStep(b, q, dt);   // (Round 5: the tournament banners; all down = it is dizzy, even mid-move)
+    if (b.kit.dream) { dreamBonusStep(b, q, dt); return false; }
     bonusStep(b, q, dt);                              // (Round 6: the boss's bonus idea; it may cheer the boss up)
     if (!b.encounter) return false;
     if (q.move) { raidMoveStep(b, dt); return true; }
@@ -4177,6 +4210,8 @@ const GAME = (() => {
   // Where the boss camera should look too (09): the crown / bubble / hole / nearest rock / carrot on the floor / nearest
   // heart while a bonus is on; else null.
   function bonusSpot() {
+    const dream = boss && boss.encounter && boss.encounter.dream;
+    if (dream && dream.state === 'on') { const p = dream.points.find(p => !p.done); if(p) return {x:p.x,z:p.z}; }
     const b = boss, Q = bonusOf(b);
     if (!b || b.dead || !b.aggro || !Q || Q.state !== 'on') return null;
     const near = list => { let best = null, bd = 1e9; for (const o of list) { const d = dist2(o.x, o.z, P.pos.x, P.pos.z); if (d < bd) { bd = d; best = o; } } return best ? { x: best.x, z: best.z } : null; };
@@ -4355,7 +4390,63 @@ const GAME = (() => {
       default: bossPhase(b, 'idle', 1); b.wait = 0.5;   // (a phase of another boss type: start over)
     }
   }
-  const BOSS_AI = { kraljole: kraljoleStep, kefirdev: kefirdevStep, kostebekusta: kostebekustaStep, lavkaplumbaga: lavkaplumbagaStep, sovalye: sovalyeStep, ejderha: dragonStep };
+
+  // Two opening dream encounters, with forgiving optional collect-and-giggle games.
+  function clearDreamBonus(q) {
+    if (!q || !q.dream) return;
+    for (const p of q.dream.points || []) { remove(p.mark); if(p.mesh) { p.mesh.removeFromParent(); p.mesh.geometry.dispose(); p.mesh.material.dispose(); } }
+    q.dream = null;
+  }
+  function dreamBonusStep(b,q,dt) {
+    if (!q.dream && !b.bonusWon && b.hp/b.maxHp < .78) {
+      const moon=b.type==='aytavsan', points=[];
+      for(let i=0;i<3;i++) {
+        const a=i*Math.PI*2/3, apart=(x,z)=>points.every(p=>dist2(x,z,p.x,p.z)>sq(2));
+        const spot=bonusSpotOn(b.x,b.z,3.5,5,.4,viewFirst(apart)) || bonusSpotOn(b.x,b.z,3.5,6,.4,apart);
+        const x=spot ? spot.x : b.homeX+Math.sin(a)*4, z=spot ? spot.z : b.homeZ+Math.cos(a)*4;
+        const mesh=new THREE.Mesh(G.sphere(16).clone(),new THREE.MeshStandardMaterial({color:moon?'#ffe29b':'#83e9e2',emissive:moon?'#bc8c28':'#258b94',emissiveIntensity:.55,roughness:.3}));
+        mesh.scale.set(.34,moon?.48:.34,.34); mesh.position.set(x,.65,z); scene.add(mesh);
+        points.push({x,z,mesh,done:false,mark:fx('marker',x,z,.7,0,moon?'#ffe29b':'#83e9e2')});
+      }
+      q.dream={state:'on',t:0,points,have:0}; say(moon?'ay_oyun':'sabun_oyun',2); emit('bonus',{on:true,kind:moon?'yildiz':'sabun',type:b.type,have:0,need:3,state:'on'});
+    }
+    const Q=q.dream; if(!Q || Q.state!=='on') return;
+    Q.t+=dt;
+    for(const p of Q.points) if(!p.done) {
+      p.mesh.position.y=.7+Math.sin(Q.t*3+p.x)*.13; p.mesh.rotation.y+=dt;
+      if(dist2(P.pos.x,P.pos.z,p.x,p.z)<sq(1.25)) {
+        p.done=true; remove(p.mark); p.mesh.visible=false; Q.have++; burst('sparkle',p.x,.7,p.z,{count:15});sfx('heart');
+        emit('bonus',{on:true,kind:b.type==='aytavsan'?'yildiz':'sabun',type:b.type,have:Q.have,need:3,state:'on'});
+      }
+    }
+    if(Q.have===3) {Q.state='done';b.bonusWon=true;bonusStun(b,'giggle',4,false);heal(.08);say('hayal_oyun_bitti',2);emit('bonus',{on:false,type:b.type});}
+    else if(Q.t>22) {Q.state='done';emit('bonus',{on:false,type:b.type}); for(const p of Q.points){remove(p.mark);p.mesh.visible=false;}}
+  }
+  function dreamBossStep(b,dt,d,ux,uz) {
+    const moon=b.type==='aytavsan',col=b.kit.col; b.st.air=0;
+    switch(b.ph) {
+      case 'roar':bossRoar(b,1.6);break;
+      case 'summon':bossSummon(b,1.5);break;
+      case 'giggle':case 'charmed':b.st.move=0;if(b.stT>=b.phD)bossEnd(b,.8,1.2);break;
+      case 'idle':
+        if(bossIdle(b,dt,d,ux,uz,5)) {
+          if(b.summon){bossPhase(b,'summon',1.5);break;}
+          if(Math.random()<.55) {bossPhase(b,'hop',3.4);const p=approachSpot(b,6);b.hx0=b.x;b.hz0=b.z;b.hx1=p.x;b.hz1=p.z;b.tele=fx('telegraph',p.x,p.z,2.6,2.6,col);}
+          else {bossPhase(b,'spit',3);b.face=Math.atan2(ux,uz);b.tele=fx('telegraphCone',b.x,b.z,b.face,1.1,7,2,col);}
+        }break;
+      case 'hop': {
+        const t=b.stT;
+        if(t>=2 && t<2.6){const k=(t-2)/.6;b.x=lerp(b.hx0,b.hx1,k);b.z=lerp(b.hz0,b.hz1,k);b.st.air=k;}
+        if(t>=2.6 && !b.did){b.did=1;b.x=b.hx1;b.z=b.hz1;remove(b.tele);b.tele=null;bossRing(b,b.x,b.z,2.6,.6,1.8,col);burst('sparkle',b.x,.6,b.z,{count:18,color:col});sfx('bounce');}
+        if(t>=b.phD)bossEnd(b,1,1.5);break;
+      }
+      case 'spit':
+        if(b.stT>=2 && !b.did){b.did=1;remove(b.tele);b.tele=null;for(const a of [-.32,0,.32])bossShot(b,'bubble',a,moon?3.2:3.7,.55,.35);sfx('pop');}
+        if(b.stT>=b.phD)bossEnd(b,.9,1.3);break;
+    }
+  }
+
+  const BOSS_AI = { kopukusta: dreamBossStep, aytavsan: dreamBossStep, kraljole: kraljoleStep, kefirdev: kefirdevStep, kostebekusta: kostebekustaStep, lavkaplumbaga: lavkaplumbagaStep, sovalye: sovalyeStep, ejderha: dragonStep };
 
   // ── Damage ──
   function damage(e, amount, o = {}) {
@@ -5929,6 +6020,7 @@ const GAME = (() => {
   }
   function victory() {
     if (GAME.state === 'end') return;
+    mapOpen = true; try {localStorage.setItem(MAP_KEY,'acik');}catch(e){}
     GAME.state = 'end'; C.cheerT = 1e9;
     C.targetE = null; C.targetObj = null; C.hasT = false; C.drag = false; C.swing = null; C.vel = 0;
     if (crystal) faceTo(crystal.x, crystal.z);
@@ -6236,7 +6328,7 @@ const GAME = (() => {
   // ZORDER —, mapped by id onto the ZONES this build really has. noId: ignore zid (a flag that names an index of its own).
   function saveZone(s, zn, ZL, noId) {
     if (!noId && typeof s.zid === 'string' && ZL) { const k = ZL.findIndex(z => z && z.id === s.zid); if (k >= 0) return k; }
-    const sv = typeof s.sv === 'number' ? s.sv : 0, order = sv >= 5 ? ZORDER : ZORDER4;
+    const sv = typeof s.sv === 'number' ? s.sv : 0, order = sv >= 6 ? ZORDER : sv >= 5 ? ZORDER5 : ZORDER4;
     if (sv < 3 && zn >= 2) zn += 1;
     if (sv < 4 && zn >= 1) zn += 1;
     if (ZL) {
@@ -6281,7 +6373,7 @@ const GAME = (() => {
   }
 
   // ── Game flow ──
-  function useTitleLevel() { return L && L._title && P.zone === 0; }
+  function useTitleLevel() { return L && L._title && P.zone === 0 && L.theme !== 'bathroom'; }
   function startHere() {   // turn the idle title level into the playable zone 0
     P.zone = 0;
     const st = L.start || { x: 0, z: 0 };
@@ -6422,6 +6514,7 @@ const GAME = (() => {
     HST.swingDir = C.swing ? C.swing.dir : C.swingDir;
     HST.cast = C.swing && C.swing.magic ? clamp(C.swing.t / C.swing.dur, 0, 0.999) : castP >= 0 && castP < 1 ? castP : -1;
     HST.spin = P.spin > 0; HST.hurt = C.hurtT; HST.dead = P.dead; HST.cheer = C.cheerT > 0; HST.idleT = C.idleT;
+    HST.sitRead = !!(GAME.state === 'title' && L && L.readingSpot);
     H.root.position.copy(P.pos); H.root.rotation.y = P.face;
     bladeLight(dt);
     try { H.update(dt, HST); } catch (err) { warnOnce('H.update', err); }
@@ -6551,7 +6644,8 @@ const GAME = (() => {
   function titleUpdate(dt) {
     if (!inited) return;
     C.vel = 0; C.swing = null; C.hurtT = 0; C.cheerT = 0; C.idleT += dt;
-    P.face = dampAngle(P.face, 0, 3, dt);
+    if(L && L.readingSpot) {const r=L.readingSpot;P.pos.set(r.x,r.seatY-.40*baseScale,r.z);P.face=r.face||0;}
+    else P.face = dampAngle(P.face, 0, 3, dt);
     if (L && L.npcObj && L.npcObj.model && L.npcObj.model.anim) { try { L.npcObj.model.anim(dt, owlTalking()); } catch (err) { warnOnce('owl.anim', err); } }
     updateHero(dt);
     updateBilbo(dt);
@@ -6578,6 +6672,7 @@ const GAME = (() => {
     buildSkills();
     resetPlayer();
     const s = readSave();   // title screen: wear the saved outfit
+    if(s && s.ng > 0) { mapOpen=true; try{localStorage.setItem(MAP_KEY,'acik');}catch(e){} }
     if (s && s.bag) {
       const eq = s.equip || {}, bag = s.bag;
       const wear = { weapon: bag[eq.weapon] || P.equip.weapon, offhand: s.heroClass === 'hybrid' ? bag[eq.offhand] || null : null, hat: bag[eq.hat] || null, cape: bag[eq.cape] || null };
@@ -6590,6 +6685,8 @@ const GAME = (() => {
     P, H: null, enemies, L: null, state: 'title', paused: false, skills: [], boss: null, time: 0,
     get difficulty() { return hard ? 'hard' : 'normal'; }, setDifficulty,
     merchantInfo, merchantNear, merchantWard, visitMerchant, buyMerchant,
+    mapUnlocked, travelTo, bone,
+    get boneCooldown(){return Math.max(0,boneAt-gt);}, get boneCooldownMax(){return BONE_CD;},
     init, newGame, continueGame, hasSave: () => !!readSave(), save, clearSave,
     loadZone, update, titleUpdate, input, equipSlot, equip: item => equip(item), unequip, drinkPotion, addItem, cast,
     on, emit, enemiesNear, nearestEnemy, damage, spawnProjectile, hitBreakables, heroDamageNow, hurtPlayer, heal,

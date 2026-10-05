@@ -617,7 +617,8 @@ html, body { -webkit-user-select: none; user-select: none; -webkit-touch-callout
 
 /* ── Portrait iPad ── */
 @media (orientation: portrait) {
-  #ui.hud-on .u-sub { left: 5vw; right: 5vw; bottom: calc(var(--padB) + var(--k) * 356px); }
+  /* Keep a right-hand gutter for Bilbo's permanent button and its label. */
+  #ui.hud-on .u-sub { left: 5vw; right: calc(var(--padR) + var(--k) * 155px); bottom: calc(var(--padB) + var(--k) * 356px); }
   /* portrait: boss bar right under the portrait/XP block, left of the minimap (keeps most of the tall screen for the dragon);
      toast under the minimap; item card drops below the boss bar while it is shown */
   .u-boss { top: calc(var(--padT) + var(--k) * 118px); left: calc(var(--padL) + var(--k) * 34px); right: calc(var(--padR) + var(--k) * 200px); max-width: calc(var(--k) * 560px); }
@@ -729,6 +730,105 @@ html, body { -webkit-user-select: none; user-select: none; -webkit-touch-callout
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35); }
 
 /* The travelling moon-cat's shop: readable offers, exact costs, and a quiet pause while choosing. */
+/* Feza's atlas: a quiet night sea, floating storybook islands and a golden dream trail. */
+.u-dream-intro { z-index: 24; padding: max(14px, env(safe-area-inset-top)) 18px max(14px, env(safe-area-inset-bottom)); box-sizing: border-box; }
+.u-dream-intro-panel { box-sizing: border-box; display: flex; align-items: center; flex-direction: column; gap: 9px; width: min(900px, 100%); max-height: 100%; padding: 25px; overflow-y: auto; border: 3px solid #ecd4a0; border-radius: 32px; background: linear-gradient(145deg, #354e61, #382d57); box-shadow: 0 12px 70px #08082199; touch-action: pan-y; }
+.u-dream-intro-art { width: min(760px, 100%); }
+.u-dream-intro-art svg { width: 100%; display: block; }
+.u-dream-intro-copy { text-align: center; font-size: clamp(14px, 2vw, 20px); line-height: 1.5; color: #fff1d4; margin: 0 0 6px; }
+.u-dream-intro .u-btn { font-size: clamp(22px, 3vw, 31px); min-height: 54px; }
+.u-dream-travel { z-index: 24; overflow: hidden; background: radial-gradient(ellipse at 18% 80%, #416e8199, transparent 50%), radial-gradient(ellipse at 76% 28%, #65537977, transparent 54%), linear-gradient(155deg, #172645, #151736 55%, #233650); }
+.u-dream-travel.forest { background: radial-gradient(ellipse at 78% 60%, #599b7066, transparent 55%), linear-gradient(155deg, #192642, #1e3541 70%, #26493e); }
+.u-dream-travel::before, .u-dream-travel::after { content: ''; position: absolute; inset: -10%; pointer-events: none; background-image: radial-gradient(circle, #ffffe9bb 1px, transparent 2px); background-size: 87px 73px; opacity: .5; animation: u-travel-sky 15s linear infinite; }
+.u-dream-travel::after { background-size: 153px 137px; background-position: 31px 19px; opacity: .3; animation-duration: 23s; }
+.u-dream-travel-art { position: relative; z-index: 1; width: min(1320px, 100%); height: min(75vh, 620px); }
+.u-dream-travel-art svg { width: 100%; height: 100%; display: block; overflow: visible; }
+#ui.journey-on #uiHud { visibility: hidden; }
+#ui.journey-on .u-sub { z-index: 26; left: 10vw; right: 10vw; bottom: max(4vh, env(safe-area-inset-bottom)); }
+@keyframes u-travel-sky { from { transform: translate(20px, -8px); } to { transform: translate(-25px, 12px); } }
+.u-rocket-flame { opacity: 0; }
+.u-journey-rocket { transform-box: view-box; transform-origin: 0 0; }
+.u-journey-passengers { opacity: 0; }
+.u-boarding-feza, .u-boarding-bilbo { transform-box: view-box; transform-origin: 0 0; }
+.u-dream-travel-art.flying .u-boarding-feza { animation: u-feza-boards 1s ease-in-out forwards; }
+.u-dream-travel-art.flying .u-boarding-bilbo { animation: u-bilbo-boards .95s .15s ease-in-out forwards; }
+.u-dream-travel-art.flying .u-journey-passengers { animation: u-cabin-arrival .2s 1s forwards; }
+.u-dream-travel-art.flying .u-journey-rocket { animation: u-dream-flight 4.2s 1.15s ease-in-out forwards; }
+.u-dream-travel-art.flying .u-rocket-flame { animation: u-cabin-arrival .2s 1.15s forwards, u-flame-pulse .22s 1.15s ease-in-out infinite alternate; }
+.u-dream-travel-art.flying .u-journey-boarding { opacity: 0; transition: opacity .2s; }
+@keyframes u-feza-boards { 0% { transform: translate(160px, 214px); opacity: 1; } 35% { transform: translate(202px, 205px) rotate(5deg); opacity: 1; } 72% { transform: translate(250px, 167px) scale(.75); opacity: 1; } 100% { transform: translate(280px, 147px) scale(.35); opacity: 0; } }
+@keyframes u-bilbo-boards { 0% { transform: translate(207px, 246px); opacity: 1; } 42% { transform: translate(232px, 173px) rotate(-12deg); opacity: 1; } 78% { transform: translate(277px, 163px) scale(.8); opacity: 1; } 100% { transform: translate(296px, 160px) scale(.4); opacity: 0; } }
+@keyframes u-cabin-arrival { to { opacity: 1; } }
+@keyframes u-dream-flight { 0% { transform: translate(285px, 157px) rotate(24deg); } 25% { transform: translate(310px, 133px) rotate(43deg); } 65% { transform: translate(450px, 111px) rotate(62deg) scale(.8); } 100% { transform: translate(610px, 145px) rotate(24deg) scale(.4); } }
+@keyframes u-flame-pulse { from { fill-opacity: .55; } to { fill-opacity: 1; } }
+@media (max-height: 560px) and (orientation: landscape) {
+  .u-dream-intro-panel { padding: 12px 20px; gap: 5px; }
+  .u-dream-intro .u-dream-title { font-size: 25px; }
+  .u-dream-intro-art { width: min(100%, calc((100dvh - 180px) * 2.17)); }
+  .u-dream-intro-copy { font-size: 13px; line-height: 1.3; }
+  .u-dream-intro .u-btn { min-height: 43px; font-size: 22px; }
+  .u-dream-travel-art { height: 88vh; width: 100%; }
+}
+.u-dream-open { position: relative; }
+.u-dream-label { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); color: #fff1bf; font-weight: 900; font-size: calc(var(--k) * 15px); padding-top: 3px; }
+.u-bone { --c: #b5efd7; box-shadow: 0 calc(var(--k) * 6px) 0 #235b57, 0 0 0 calc(var(--k) * 3px) #ffe8b9, inset 0 calc(var(--k) * 4px) calc(var(--k) * 10px) #fff9; }
+.u-bone .u-ico { transform: rotate(-24deg); }
+.u-bone-label { position: absolute; bottom: -12%; left: 50%; transform: translateX(-50%); padding: 2px 11px; border-radius: 12px; background: #275b5a; border: 2px solid #fff0bb; color: #fff6d3; font-weight: 900; font-size: calc(var(--k) * 17px); }
+.u-dream-screen { z-index: 25; padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); box-sizing: border-box; background: #110e2dee; backdrop-filter: blur(7px); }
+.u-dream-panel { position: relative; box-sizing: border-box; width: min(1160px, 100%); max-height: 100%; overflow-y: auto; display: flex; align-items: center; flex-direction: column; padding: 20px 22px 14px; border: 2px solid #e6cda5; border-radius: 34px; background: radial-gradient(ellipse at 30% 80%, #24636b80, transparent 60%), radial-gradient(ellipse at 80% 0%, #79549055, transparent 60%), linear-gradient(135deg, #29264f, #183447 55%, #35274e); box-shadow: 0 0 0 5px #72648055, 0 18px 80px #0008, inset 0 0 40px #140e3288; touch-action: pan-y; }
+.u-dream-kicker { color: #c4dedc; letter-spacing: 3px; font-size: 11px; font-weight: 800; }
+.u-dream-title { margin: 2px 0 3px; font: 900 clamp(27px, 4.3vw, 43px)/1.15 var(--f); color: #ffecc3; text-shadow: 0 3px 0 #14132f; }
+.u-dream-hint { margin: 3px 0 0; font-size: clamp(12px, 1.6vw, 17px); color: #d4e7e0; text-align: center; }
+.u-dream-board { position: relative; width: 100%; aspect-ratio: 1000 / 560; min-height: 270px; margin: 5px 0; flex: 0 0 auto; border-radius: 22px; overflow: hidden; background-image: radial-gradient(circle, #fff1bf99 1px, transparent 2px), radial-gradient(circle, #cbd0ff88 1px, transparent 2px), radial-gradient(ellipse at 50% 50%, #aabbef1a, transparent 55%); background-size: 73px 61px, 113px 101px, 100% 100%; background-position: 15px 21px, 41px 8px, center; }
+.u-dream-route { position: absolute; inset: 0; pointer-events: none; }
+.u-dream-starfield, .u-dream-ornaments { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.u-dream-ornaments svg { width: 100%; height: 100%; display: block; }
+.u-dream-star { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #faf0c1; box-shadow: 0 0 8px #d9c7ff; opacity: .55; animation: u-star-twinkle var(--star-time, 4s) var(--star-delay, 0s) ease-in-out infinite; }
+.u-dream-star.bright { width: 15px; height: 15px; line-height: 1; font-size: 15px; color: #ffe2ad; background: none; box-shadow: none; animation-name: u-star-drift; }
+.u-island-sparkles { position: absolute; inset: 5% 8% 24%; pointer-events: none; color: #f8edbb; }
+.u-island-sparkles i { position: absolute; font-size: 13px; font-style: normal; opacity: .55; animation: u-star-twinkle 3.4s var(--spark-delay, 0s) ease-in-out infinite; }
+.u-island-sparkles i:nth-child(1) { left: 1%; top: 23%; }
+.u-island-sparkles i:nth-child(2) { right: 4%; top: 4%; animation-delay: calc(var(--spark-delay, 0s) - 1.3s); font-size: 9px; }
+.u-island-sparkles i:nth-child(3) { right: 0; bottom: 11%; animation-delay: calc(var(--spark-delay, 0s) - 2.1s); }
+@keyframes u-star-twinkle { 0%, 100% { opacity: .22; transform: scale(.7); } 50% { opacity: .9; transform: scale(1.2); } }
+@keyframes u-star-drift { 0%, 100% { opacity: .35; transform: translateY(2px) rotate(-8deg) scale(.8); } 50% { opacity: .95; transform: translateY(-5px) rotate(8deg) scale(1.1); } }
+.u-dream-route svg { display: block; width: 100%; height: 100%; }
+.u-dream-compass { position: absolute; left: 46%; top: 43%; width: 8%; color: #dec69e; text-align: center; opacity: .8; }
+.u-dream-compass span { font-size: clamp(25px, 4vw, 55px); line-height: 1; display: block; }
+.u-dream-compass small { letter-spacing: 3px; font-size: 9px; }
+#ui .u-dream-island { position: absolute; left: var(--ix); top: var(--iy); width: 20%; padding: 0; background: none; border: 0; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; color: #fff4d7; cursor: pointer; touch-action: manipulation; transition: filter .18s, scale .18s; }
+.u-island-art { display: block; width: 100%; max-height: 170px; filter: drop-shadow(0 6px 6px #070c2855); }
+.u-island-name { margin-top: -5px; padding: 5px 10px; border-radius: 13px; border: 1px solid #cfb68f88; font-size: clamp(11px, 1.5vw, 17px); font-weight: 900; white-space: nowrap; color: #fff1c8; background: linear-gradient(#444260ee, #252f4aee); box-shadow: 0 3px 10px #0b0c2688; }
+.u-island-number { position: absolute; left: 18%; top: 56%; display: grid; place-items: center; width: 22px; height: 22px; background: #f8dfac; border: 2px solid #d8bb8c; color: #55425d; border-radius: 50%; font-size: 12px; font-weight: 900; box-shadow: 0 2px 5px #221a4944; }
+.u-island-current { display: none; color: #b0ffe0; font-size: 11px; font-weight: 800; margin-top: 4px; }
+.u-dream-island.current .u-island-current { display: block; }
+.u-dream-island.current .u-island-name { border-color: #affedb; box-shadow: 0 0 14px #baffd655; }
+#ui .u-dream-island.down { scale: .95; filter: brightness(1.15); }
+#ui .u-dream-island:focus-visible { outline: 3px solid #ffe5aa; border-radius: 26px; outline-offset: 2px; }
+#ui .u-dream-close { display: flex; align-items: center; justify-content: center; gap: 9px; flex: 0 0 auto; min-height: 45px; padding: 7px 23px; border: 2px solid #ccb797; border-radius: 20px; background: #423e61; color: #fff0c8; font: 800 17px var(--f); box-shadow: 0 3px 0 #161b32; cursor: pointer; }
+.u-dream-close .u-svg { width: 17px; height: 17px; }
+.u-dream-close:focus-visible { outline: 3px solid #b0ffe0; outline-offset: 4px; }
+.u-dream-unlock { color: #cff9ed; font-size: calc(var(--k) * 18px); max-width: 480px; text-align: center; }
+@media (orientation: portrait) {
+  .u-dream-board { aspect-ratio: 1000 / 780; }
+  #ui .u-dream-island { width: 23%; }
+  .u-island-name { white-space: normal; text-align: center; min-height: 2.2em; display: flex; align-items: center; justify-content: center; padding: 5px 6px; }
+  .u-island-number { left: 5%; width: 20px; height: 20px; }
+  .u-dream-panel { padding: 20px 10px 16px; }
+}
+@media (max-height: 560px) and (orientation: landscape) {
+  .u-dream-panel { padding: 10px 20px; border-radius: 24px; }
+  .u-dream-title { font-size: 26px; }
+  .u-dream-kicker { font-size: 8px; }
+  .u-dream-hint { font-size: 12px; }
+  .u-dream-board { width: min(100%, 880px); height: calc(100dvh - 170px); aspect-ratio: auto; min-height: 190px; margin: 0; }
+  .u-island-art { max-height: 76px; }
+  .u-island-name { font-size: 11px; padding: 3px 7px; }
+  .u-island-number { width: 16px; height: 16px; font-size: 10px; border-width: 1px; }
+  #ui .u-dream-close { min-height: 36px; padding: 4px 20px; font-size: 14px; }
+}
+@media (prefers-reduced-motion: reduce) { .u-dream-island { transition: none !important; } .u-dream-star, .u-island-sparkles i { animation: none; opacity: .6; } }
+
 .u-shop-panel { box-sizing: border-box; width: min(92vw, 800px); max-height: 92vh; padding: 24px; gap: 14px; overflow: hidden; }
 .u-shop-head { display: flex; align-items: center; gap: 18px; width: 100%; }
 .u-shop-seal { display: grid; place-items: center; width: 76px; height: 76px; flex: 0 0 auto; border: 2px solid #b8956d; border-radius: 50%;

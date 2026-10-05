@@ -5,7 +5,7 @@ const BILBO_FOLLOW = (() => {
   const blend = (a, b, k, dt) => a + (b - a) * (1 - Math.exp(-k * dt));
   function create(env) {
     const pos = { x: 0, z: 0 };
-    let trail = [], last = null, vx = 0, vz = 0, face = 0, speed = 0, walking = false, plan = [], planAt = 0, time = 0;
+    let trail = [], last = null, vx = 0, vz = 0, face = 0, speed = 0, walking = false, plan = [], planAt = 0, time = 0, leap = null;
     const free = (x, z) => env.free(x, z, radius);
     function clear(a, b) {
       const n = Math.max(1, Math.ceil(dist(a, b) / .2));
@@ -13,7 +13,7 @@ const BILBO_FOLLOW = (() => {
       return true;
     }
     function reset(hero, x, z, angle = 0) {
-      pos.x = x; pos.z = z; face = angle; speed = vx = vz = 0; walking = false; plan = []; planAt = 0;
+      pos.x = x; pos.z = z; face = angle; speed = vx = vz = 0; walking = false; plan = []; planAt = 0; leap = null;
       trail = [{ x, z }, { x: hero.x, z: hero.z }]; last = { x: hero.x, z: hero.z };
     }
     function goal(hero) {
@@ -38,9 +38,36 @@ const BILBO_FOLLOW = (() => {
       }
       return g;
     }
+    function pounce(target) {
+      if (leap || !target || target.dead || !Number.isFinite(target.x) || !Number.isFinite(target.z)) return false;
+      const d = dist(pos, target);
+      if (d < .6 || d > 5.5) return false;
+      const stop = Math.max(.6, (target.r || .4) + .28), k = Math.max(0, (d - stop) / d);
+      const end = { x: pos.x + (target.x - pos.x) * k, z: pos.z + (target.z - pos.z) * k };
+      if (!clear(pos, end)) return false;
+      leap = { target, x: pos.x, z: pos.z, end, age: 0, duration: .62, hit: false };
+      vx = vz = 0; plan = []; walking = false;
+      return true;
+    }
     function step(dt, hero) {
       dt = Math.min(.05, Math.max(0, dt)); time += dt;
       const g = goal(hero);
+      if (leap) {
+        const l = leap; l.age += dt;
+        const u = Math.min(1, l.age / l.duration), k = u * u * (3 - 2 * u), old = { x: pos.x, z: pos.z };
+        const nx = l.x + (l.end.x - l.x) * k, nz = l.z + (l.end.z - l.z) * k;
+        env.move(pos, nx - pos.x, nz - pos.z, radius);
+        face = Math.atan2(l.end.x - l.x, l.end.z - l.z);
+        speed = dt ? dist(old, pos) / dt : 0;
+        let impact = null;
+        if (u >= .87 && !l.hit) {
+          l.hit = true;
+          if (!l.target.dead && dist(pos, l.target) < (l.target.r || .4) + 1.25) impact = l.target;
+        }
+        const hop = Math.sin(Math.PI * u) * .76;
+        if (u >= 1) { leap = null; vx = vz = speed = 0; }
+        return { pos, face, speed, hop, pounce: Math.sin(Math.PI * u), impact };
+      }
       // Only a teleport/zone warp warrants snapping, never ordinary walking or a nearby wall.
       if (dist(pos, hero) > 18 && free(g.x, g.z)) { reset(hero, g.x, g.z, face); return { pos, face, speed: 0 }; }
       let target = g;
@@ -87,7 +114,7 @@ const BILBO_FOLLOW = (() => {
       if (actual < .08 && desired > .5) { vx = vz = 0; }
       return { pos, face, speed };
     }
-    return { pos, reset, step };
+    return { pos, reset, step, pounce, isPouncing: () => !!leap };
   }
   return { create };
 })();

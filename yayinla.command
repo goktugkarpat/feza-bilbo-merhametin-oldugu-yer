@@ -13,9 +13,9 @@ else
   git commit -q -m "Güncelleme: $(date '+%Y-%m-%d %H:%M')" && echo "Değişiklikler kaydedildi."
 fi
 if ! git remote get-url origin >/dev/null 2>&1; then
-  if gh repo create goktugkarpat/feza-bilbo-merhametin-oldugu-yer --public --source . --remote origin --push; then
-    gh api -X POST repos/goktugkarpat/feza-bilbo-merhametin-oldugu-yer/pages -f 'source[branch]=main' -f 'source[path]=/' >/dev/null 2>&1
-    echo "Tamam! Oyun GitHub'a yüklendi: https://goktugkarpat.github.io/feza-bilbo-merhametin-oldugu-yer/"
+  if gh repo create goktugkarpat/feza-huysuzlara-karsi-twisted --public --source . --remote origin --push; then
+    gh api -X POST repos/goktugkarpat/feza-huysuzlara-karsi-twisted/pages -f 'source[branch]=main' -f 'source[path]=/' >/dev/null 2>&1
+    echo "Tamam! Oyun GitHub'a yüklendi: https://goktugkarpat.github.io/feza-huysuzlara-karsi-twisted/"
     echo "(İlk yayın birkaç dakika sürebilir.)"
   else
     echo "Gönderilemedi. İnternet bağlantısını ve 'gh auth login' girişini kontrol edin."

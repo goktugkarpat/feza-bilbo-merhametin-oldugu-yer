@@ -6,4 +6,6 @@ Orijinal çocuk oyununa dokunma. Yeni kaydı `fezaBilboMerhamet.save.v1`, ayarı
 
 Testleri daima `?sessiz` ile aç. Ses anlatımları `src/02_audio.js` JSON bloğundadır; `gen_voice.py` Emel kayıtlarını üretir, ffmpeg kırpar. `.voice-tools` yayımlanmaz.
 
-GitHub'a yalnız kullanıcı yükle/GitHub'a gönder derse gönder; ayrı depo `goktugkarpat/feza-bilbo-merhametin-oldugu-yer`, doğrudan main. PR açma. `yayinla.command` kullanıcı için hazırdır.
+GitHub'a yalnız kullanıcı yükle/GitHub'a gönder derse gönder; ayrı depo `goktugkarpat/feza-huysuzlara-karsi-twisted`, doğrudan main. PR açma. `yayinla.command` kullanıcı için hazırdır.
+
+- Güncel yapı: sekiz kısa bölüm, her birinde 6 ana alan ve en fazla 2 yan alan. Açılış Paslı Hamam ve Kül Ayı; ardından eski altı karanlık mekân. Finalden sonra Geçit Haritası tüm bölgelere dönüş sağlar. Ayrı harita anahtarı `fezaBilboMerhamet.gecitHaritasi.v1`; eski v5 kayıtların bölüm kimliklerini koru. Test araçlarını ve raporları oyun klasörüne veya depoya ekleme.

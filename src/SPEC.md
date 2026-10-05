@@ -6,13 +6,17 @@ Kullanıcı bu oyunu açıkça **yetişkinlere yönelik karanlık masal** olarak
 
 Huysuzlara Karşı v49'un temel motoru, kamera/dokunmatik kontrolü ve hafif çizim yapısı korunur. Gölge kalitesi ve ışık sayısı korunur. Kullanıcının son yönlendirmesi: ortam karanlık olsa da oynarken rahat görünsün; ortam ışığı ve yüzey tonları okunurluk için ölçülü artırılabilir. Yeteneklerde koyu mor ve vampirvari kan/kemik tonları baskındır. Daha korkunç modeller, dokular, silüetler ve efektler bu basit grafik dilinin içinde yapılır. Orijinal çocuk oyununun kaynaklarına dokunulmaz.
 
-- Altı mekân: Yas Ormanı, Çürüme Vadisi, Fısıltı Madenleri, Kül Ocağı, Veba Şehri, Merhametsiz Kale.
+- Sekiz mekân: Paslı Hamam, Kül Ayı, Yas Ormanı, Çürüme Vadisi, Fısıltı Madenleri, Kül Ocağı, Veba Şehri, Merhametsiz Kale.
 - Üç yol: İblis Avcısı, Ruh Biçen, Lanet Şövalyesi; her birinde üç yetenek.
 - Eşyalar: 64 farklı emanet, dört nadirlik görünümü; metal, kemik, yırtık kumaş ve mühür biçimleri. Kaydedilmiş eski taban kimlikleri teknik uyumluluk için korunur, görünen ad ve modeller yenidir.
 - Bilbo yakın hedefe saldırır, en çok iki sıradan düşmanı üzerine çeker. Saldırı sonrasında Feza'nın hasarının %35'ini üstlenir; zırhı sonludur, kırılınca çekilip toparlanır. Zırh %35'e ulaşıncaya kadar saldırıya ve koruyucu havlamaya dönmez. Boss saldırı uyarılarının hedefi Feza'dır; köz kırmızısı uyarılar avcının mor büyülerinden ayrılır.
-- 96 önceden kaydedilmiş doğal Türkçe Emel anlatımı. Tarayıcı konuşma sesi kullanılmaz. Testler yalnız `?sessiz`; gerçek duyulur ses bağlamı açılmaz.
+- 114 önceden kaydedilmiş doğal Türkçe Emel anlatımı. Tarayıcı konuşma sesi kullanılmaz. Testler yalnız `?sessiz`; gerçek duyulur ses bağlamı açılmaz.
 - Ayrı kayıt `fezaBilboMerhamet.save.v1`, tercih `fezaBilboMerhamet.ayar.v1`; service worker yalnız `feza-bilbo-merhamet-` önekli eski önbellekleri temizler.
 - PWA ve file:// desteği korunur. GitHub'a yalnız kullanıcı yükleme istediğinde, ayrı depoya doğrudan main; PR yok.
+
+## Güncel bölüm ve harita sözleşmesi
+
+Sekiz bölümde 6 ana alan ve en fazla 2 yan alan vardır. Normal boss canı güncel kısa macera ölçeğindedir. Final, `fezaBilboMerhamet.gecitHaritasi.v1` kaydını açar; GAME.mapUnlocked() ve GAME.travelTo(index) haritayı yönetir. Eski altı bölümün v5 kayıtları bölüm kimliğiyle yeni sıraya taşınır; çocuk oyununun kayıtları okunmaz.
 
 ## Temel motorun geçmiş teknik notları
 

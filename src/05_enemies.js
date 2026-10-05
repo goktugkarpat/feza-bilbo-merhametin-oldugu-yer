@@ -27,6 +27,16 @@
 // Base stats (zone 1 scale; GAME multiplies by zone and its DIFF table). hover = flying height of the model origin.
 // Feza's request: no spiders any more (orumcek removed); the cave has moles (kostebek) and snails (salyangoz).
 const EDEF = {
+  kakacik: { ad: 'Gülen Kakacık', hp: 18, dmg: 3, speed: 2.1, r: 0.48, height: 0.9, xp: 10, gold: 3, kind: 'hop', atkRange: 2.2, atkCd: 2.2, windup: 0.8, fly: false, aggro: 8, line: 'ilk_kakacik' },
+  cisdamlasi: { ad: 'Şıp Şıp Çiş Damlası', hp: 16, dmg: 3, speed: 2.7, r: 0.43, height: 0.88, xp: 10, gold: 3, kind: 'glide', atkRange: 2.2, atkCd: 2.4, windup: 0.8, fly: false, aggro: 8, trail: 'milk', line: 'ilk_cisdamlasi' },
+  sabunkopugu: { ad: 'Sabun Köpüğü', hp: 15, dmg: 3, speed: 1.8, r: 0.44, height: 0.9, xp: 10, gold: 3, kind: 'ranged', atkRange: 6, range: 6, atkCd: 2.8, windup: 0.9, fly: true, hover: 0.45, aggro: 8, shot: { kind: 'bubble', speed: 3.5, r: 0.3 }, line: 'ilk_sabunkopugu' },
+  ayponpon: { ad: 'Zıp Zıp Ay Ponponu', hp: 22, dmg: 4, speed: 2.2, r: 0.5, height: 1.18, xp: 12, gold: 3, kind: 'hop', atkRange: 2.6, atkCd: 2.2, windup: 0.8, fly: false, aggro: 8.5, line: 'ilk_ayponpon' },
+  yildizcik: { ad: 'Pırıl Pırıl Yıldızcık', hp: 18, dmg: 3, speed: 2, r: 0.45, height: 0.85, xp: 11, gold: 3, kind: 'ranged', atkRange: 6, range: 6, atkCd: 2.8, windup: 0.85, fly: true, hover: 0.65, aggro: 8.5, shot: { kind: 'bubble', speed: 3.7, r: 0.3 }, line: 'ilk_yildizcik' },
+  kratercik: { ad: 'Uykucu Kratercik', hp: 24, dmg: 4, speed: 2.5, r: 0.5, height: 0.95, xp: 13, gold: 3, kind: 'burrow', atkRange: 1.3, atkCd: 2.1, windup: 0.8, fly: false, aggro: 8, burrowIn: 0.55, burrowOut: 0.5, line: 'ilk_kratercik' },
+  kopukusta: { ad: 'Köpük Ustası', hp: 250, dmg: 4, speed: 1.6, r: 1.3, height: 2.6, xp: 150, gold: 35, kind: 'boss', atkRange: 2.6, atkCd: 2, windup: 1, fly: false, aggro: 12,
+    shot: { kind: 'bubble', speed: 3.6, r: 0.42 }, lines: { giris: 'kopukusta_giris', bitti: 'kopukusta_bitti' }, phases: ['idle', 'move', 'hop', 'spit', 'summon', 'roar', 'blush'], summon: { type: 'sabunkopugu', n: 2, at: [0.5] }, slamR: 2.8 },
+  aytavsan: { ad: 'Ponpon Ay Tavşanı', hp: 300, dmg: 5, speed: 1.8, r: 1.2, height: 3.0, xp: 170, gold: 40, kind: 'boss', atkRange: 2.8, atkCd: 2, windup: 1, fly: false, aggro: 12,
+    shot: { kind: 'bubble', speed: 3.8, r: 0.42 }, lines: { giris: 'aytavsan_giris', bitti: 'aytavsan_bitti' }, phases: ['idle', 'move', 'hop', 'spit', 'summon', 'roar', 'blush'], summon: { type: 'ayponpon', n: 2, at: [0.5] }, slamR: 3 },
   jole:    { ad: 'Jöle', hp: 22, dmg: 5, speed: 2.6, r: 0.5, height: 0.78, xp: 10, gold: 3, kind: 'melee', atkRange: 0.9, atkCd: 1.6, windup: 0.6, fly: false, aggro: 8.5, variants: ['green', 'pink', 'blue', 'purple'] },
   mantar:  { ad: 'Huysuz Mantar', hp: 26, dmg: 6, speed: 1.8, r: 0.5, height: 1.02, xp: 12, gold: 3, kind: 'ranged', atkRange: 7, atkCd: 2.4, windup: 0.7, fly: false, aggro: 9, shot: { kind: 'spore', speed: 5.5, r: 0.32 } },
   yarasa:  { ad: 'Yarasa', hp: 12, dmg: 4, speed: 4.4, r: 0.45, height: 0.62, xp: 8, gold: 2, kind: 'melee', atkRange: 0.9, atkCd: 1.5, windup: 0.5, fly: true, hover: 0.9, aggro: 10 },
@@ -5463,13 +5473,99 @@ const EMODEL = (function (G0) {
   }
 
   // Names change; combat identifiers and every numeric combat value stay intact.
-  const NIGHT_NAMES={"jole":"Çürük Ruh","mantar":"Zehir Kâhini","yarasa":"Gece Dişi","goblin":"Kemik Yağmacısı","kostebek":"Mezar Kemireni","salyangoz":"Kabuklu Çürüme","hayalet":"Yeminli Hortlak","golem":"Mezar Devi","asker":"Kara Lejyon","atescik":"Kül Ruhu","ejderha":"Gece Yutan","kaplumbaga":"Kül Kabuğu","ateskusu":"Köz Akbabası","kraljole":"Çürük Taç","kostebekusta":"Mezar Kazıcısı","lavkaplumbaga":"Kül Muhafızı","yogurt":"Veba Taşıyıcısı","kaymak":"Sürünen Çürüme","kopuk":"Boğulmuş Ruh","peynir":"Kemik Yığını","kefirdev":"Veba Rahibi","nobetci":"Zalim Nöbetçi","simitci":"Halka Celladı","supurgeci":"Mezar Süpüren","tellal":"Ölüm Tellalı","sovalye":"Yeminbozan"};
+  const NIGHT_NAMES={"kakacik":"Çamur Hortlağı","cisdamlasi":"Zehir Damlası","sabunkopugu":"Lanet Köpüğü","ayponpon":"Ay Avcısı","yildizcik":"Sönmüş Yıldız","kratercik":"Krater Pusucusu","kopukusta":"Köpük Celladı","aytavsan":"Ay Yırtıcısı","jole":"Çürük Ruh","mantar":"Zehir Kâhini","yarasa":"Gece Dişi","goblin":"Kemik Yağmacısı","kostebek":"Mezar Kemireni","salyangoz":"Kabuklu Çürüme","hayalet":"Yeminli Hortlak","golem":"Mezar Devi","asker":"Kara Lejyon","atescik":"Kül Ruhu","ejderha":"Gece Yutan","kaplumbaga":"Kül Kabuğu","ateskusu":"Köz Akbabası","kraljole":"Çürük Taç","kostebekusta":"Mezar Kazıcısı","lavkaplumbaga":"Kül Muhafızı","yogurt":"Veba Taşıyıcısı","kaymak":"Sürünen Çürüme","kopuk":"Boğulmuş Ruh","peynir":"Kemik Yığını","kefirdev":"Veba Rahibi","nobetci":"Zalim Nöbetçi","simitci":"Halka Celladı","supurgeci":"Mezar Süpüren","tellal":"Ölüm Tellalı","sovalye":"Yeminbozan"};
   for(const type of Object.keys(NIGHT_NAMES)){
     EDEF[type].ad=NIGHT_NAMES[type];
     EDEF[type].eliteAd=EDEF[type].kind==='boss'?NIGHT_NAMES[type]:'Kadim '+NIGHT_NAMES[type];
   }
   // ════════════════ Instances ════════════════
+  // The dream friends use independent moving ears / foam / swirly tips, all in one skinned mesh.
+  function buildDreamFriend(r, o, type) {
+    const boss = type === 'kopukusta' || type === 'aytavsan', rabbit = type === 'ayponpon' || type === 'aytavsan';
+    const foam = type === 'sabunkopugu' || type === 'kopukusta', poop = type === 'kakacik', drop = type === 'cisdamlasi', star = type === 'yildizcik';
+    const scale = boss ? (rabbit ? 2.3 : 2.6) : 1, cy = 0.48;
+    r.bone('body', 'root', [0, 0, 0]);
+    r.bone('tip', 'body', [0, 0.8 * scale, 0]);
+    for (const sd of [-1, 1]) r.bone(sd < 0 ? 'earL' : 'earR', 'body', [sd * 0.22 * scale, 0.75 * scale, 0]);
+    r.push([0, 0, 0], null, scale);
+    const base = poop ? '#af7750' : drop ? '#ffe38a' : star ? '#ffe5a0' : rabbit ? '#f0d9f4' : foam ? '#62b9df' : '#c0b4df';
+    r.on('body').fx(0, foam || drop ? 0.8 : 0.1);
+    if (poop) {
+      // Soft spiral tiers, with a rounded tip, never realistic or dirty.
+      for (let k = 0; k < 3; k++) r.add(G.sphere(24, 14), k === 1 ? '#bc8b5b' : base, [0, 0.2 + k * 0.22, 0], null, [0.48 - k * 0.1, 0.2, 0.43 - k * 0.09]);
+      r.on('tip').add(G.sphere(20, 12), '#c89768', [0.05, 0.78, 0], [0, 0, -0.35], [0.15, 0.18, 0.15]);
+      r.on('body').add(G.sphere(10, 6), '#ffe7ad', [-0.18, 0.6, 0.12], null, [0.07, 0.045, 0.015]);
+    } else if (drop) {
+      r.add(G.sphere(28, 18), base, [0, 0.35, 0], null, [0.43, 0.35, 0.42]);
+      r.on('tip').add(G.sphere(20, 14), '#ffe9a9', [0.05, 0.66, 0], [0, 0, -0.24], [0.18, 0.27, 0.19]);
+      r.on('body').fx(1, 0).add(G.sphere(10, 6), '#fffdf3', [-0.2, 0.49, 0.22], null, [0.045, 0.11, 0.018]);
+    } else if (foam) {
+      r.add(G.sphere(28, 18), base, [0, cy, 0], null, 0.42);
+      const bubbles = [[-0.31, 0.32, -0.1, 0.23], [0.32, 0.4, -0.08, 0.24], [0.12, 0.79, -0.1, 0.24], [-0.18, 0.73, -0.11, 0.2]];
+      for (const [x, y, z, s2] of bubbles) r.on(y > 0.6 ? 'tip' : x < 0 ? 'earL' : 'earR').add(G.sphere(22, 14), y > 0.6 ? '#b5a4ef' : '#499bbd', [x, y, z], null, s2);
+      if (boss) {
+        r.on('tip').fx(0, 0.5).add(G.sphere(18, 12), '#ffda58', [0, 1.0, 0], null, [0.2, 0.13, 0.15]);
+        r.add(G.sphere(16, 10), '#ffe676', [0, 1.16, 0.08], null, 0.1);
+        r.add(G.sphere(10, 8), '#f4aa42', [0, 1.14, 0.19], null, [0.09, 0.025, 0.05]);
+      }
+    } else if (star) {
+      // Five pill-shaped rays round off the star for a cuddly toy silhouette.
+      r.add(G.sphere(24, 16), base, [0, cy, 0], null, [0.28, 0.29, 0.2]);
+      for (let k = 0; k < 5; k++) { const a = k * TAU / 5; r.add(G.sphere(18, 10), k & 1 ? '#ffeca5' : '#f6d77f', [Math.sin(a) * 0.26, cy + Math.cos(a) * 0.26, 0], [0, 0, -a], [0.12, 0.3, 0.15]); }
+    } else if (rabbit) {
+      r.add(G.sphere(28, 18), base, [0, cy, 0], null, [0.4, 0.47, 0.35]);
+      r.add(G.sphere(18, 12), '#fff5fb', [0, 0.26, 0.28], null, [0.23, 0.2, 0.1]);
+      for (const sd of [-1, 1]) {
+        const bn = sd < 0 ? 'earL' : 'earR';
+        r.on(bn).add(G.sphere(22, 14), '#ead9f4', [sd * 0.2, 0.99, -0.02], [0.05, 0, -sd * 0.15], [0.11, 0.37, 0.1]);
+        r.add(G.sphere(18, 10), '#edacc6', [sd * 0.2, 1.0, 0.065], [0.05, 0, -sd * 0.15], [0.058, 0.26, 0.025]);
+        r.on('body').add(G.sphere(20, 12), '#d8c4ee', [sd * 0.27, 0.07, 0.16], null, [0.17, 0.08, 0.23]);
+      }
+      r.add(G.sphere(18, 10), '#fffaff', [0, 0.28, -0.35], null, 0.15);
+      if (boss) {
+        r.add(G.torus(TAU, 0.06, 24), '#8fd6ed', [0, cy, 0], [0.28, 0, 0], 0.53);
+        for (const sd of [-1, 1]) r.add(G.sphere(14, 10), '#f1c266', [sd * 0.48, cy, 0], null, 0.085);
+        r.add(G.sphere(12, 8), '#8fd6ed', [0, 0.23, 0.38], null, [0.11, 0.1, 0.03]);
+      }
+    } else {
+      r.add(G.sphere(28, 16), base, [0, cy, 0], null, [0.44, 0.45, 0.4]);
+      r.add(G.torus(TAU, 0.13, 24), '#a69dc7', [0, 0.16, 0], [Math.PI / 2, 0, 0], 0.46);
+      r.on('tip').add(G.sphere(16, 10), '#d4cbe5', [0.04, 0.87, -0.04], null, [0.23, 0.07, 0.23]);
+    }
+    r.on('body').fx(0, 0);
+    const faceR = foam ? 0.48 : rabbit || poop ? 0.4 : star ? 0.27 : 0.45;
+    face(r, [0, cy, 0], faceR, { bone: 'body', tilt: 0.4, ex: 0.12, ey: 0.035, er: 0.088, iris: '#51435f', browCol: '#785966', skin: base, mouthY: -0.105, mouthW: 0.1, heartY: 0.9, mouthPivot: true });
+    if (o.elite) crown(r.on('tip'), [0, 1.0, -0.03], 0.48, undefined, 1);
+    r.on('body').mark('muzzle', [0, 0.39, 0.4]);
+    r.pop();
+    return { height: (rabbit ? 1.35 : foam && boss ? 1.26 : 0.92) * scale, glowC: col(rabbit ? '#c6a3ff' : '#a2e5ff'), mat: { rough: foam || drop ? 0.22 : 0.6, rim: '#ffeff9', rimK: 0.3, sss: col(base).multiplyScalar(0.04) }, portrait: boss ? { cx: 0, cy: 1.6, cz: 0, rad: 1.65, dy: 0.7 } : undefined };
+  }
+  function animDreamFriend(m, dt, st, s) {
+    const B = m.B, rabbit = m.type === 'ayponpon' || m.type === 'aytavsan';
+    const boss = m.boss, sc = boss ? 2.5 : 1, ph = st.phase === 'giggle' ? 'blush' : st.phase || 'idle', t = clamp(st.phaseT || 0, 0, 1);
+    let hop = Math.max(0, Math.sin(s.t * (rabbit ? 3.3 : 5))) * s.mv;
+    if (boss && ph === 'hop') hop = Math.sin(clamp(st.air || 0, 0, 1) * Math.PI);
+    const wind = boss ? (ph === 'spit' || ph === 'roar' ? Math.sin(t * Math.PI) : 0) : Math.max(0, st.windup || 0);
+    const attack = !boss && st.attack >= 0 && st.attack < 1 ? Math.sin(st.attack * Math.PI) : 0;
+    B.body.position.y = hop * sc * (rabbit ? 0.23 : 0.12) + attack * 0.12 * (st.air > 0 ? 0.2 : 1);
+    B.body.scale.set(1 + wind * 0.1, 1 - wind * 0.12, 1 + wind * 0.1);
+    B.body.rotation.z = Math.sin(s.t * 2 + s.ph) * 0.045 + (boss && ph === 'blush' ? Math.sin(s.t * 8) * 0.07 : 0);
+    B.body.rotation.x = -wind * 0.2 + attack * 0.2;
+    B.tip.rotation.z = Math.sin(s.t * 3 + s.ph) * 0.15;
+    if (B.tip.userData.baseY === undefined) B.tip.userData.baseY = B.tip.position.y;
+    B.tip.position.y = B.tip.userData.baseY + Math.sin(s.t * 3.2) * 0.025 * sc;
+    B.earL.rotation.z = -0.08 - Math.sin(s.t * 3 + 0.6) * 0.13 - hop * 0.2;
+    B.earR.rotation.z = 0.08 + Math.sin(s.t * 3 + 0.1) * 0.13 + hop * 0.2;
+    if (m.type === 'sabunkopugu' || m.type === 'yildizcik') { B.body.position.y += Math.sin(s.t * 1.9 + s.ph) * 0.09; B.body.rotation.y = Math.sin(s.t * 0.8) * 0.2; }
+    if (m.type === 'kratercik' && st.burrow > 0) { B.body.position.y -= st.burrow * 0.65; B.body.scale.y *= 1 - st.burrow * 0.75; }
+    if (boss && ph === 'summon') { B.earL.rotation.z -= Math.sin(t * Math.PI) * 0.6; B.earR.rotation.z += Math.sin(t * Math.PI) * 0.6; }
+    if (boss && ph === 'roar') { s.mouthO = wind; s.browY = wind * 0.025; }
+  }
   const TYPES = {
+    kakacik: [(r, o) => buildDreamFriend(r, o, 'kakacik'), animDreamFriend], cisdamlasi: [(r, o) => buildDreamFriend(r, o, 'cisdamlasi'), animDreamFriend],
+    sabunkopugu: [(r, o) => buildDreamFriend(r, o, 'sabunkopugu'), animDreamFriend], ayponpon: [(r, o) => buildDreamFriend(r, o, 'ayponpon'), animDreamFriend],
+    yildizcik: [(r, o) => buildDreamFriend(r, o, 'yildizcik'), animDreamFriend], kratercik: [(r, o) => buildDreamFriend(r, o, 'kratercik'), animDreamFriend],
+    kopukusta: [(r, o) => buildDreamFriend(r, o, 'kopukusta'), animDreamFriend], aytavsan: [(r, o) => buildDreamFriend(r, o, 'aytavsan'), animDreamFriend],
     jole: [buildJole, animJole], mantar: [buildMantar, animMantar], yarasa: [buildYarasa, animYarasa], goblin: [buildGoblin, animGoblin],
     kostebek: [buildKostebek, animKostebek], salyangoz: [buildSalyangoz, animSalyangoz], hayalet: [buildHayalet, animHayalet], golem: [buildGolem, animGolem], asker: [buildAsker, animAsker],
     atescik: [buildAtescik, animAtescik], ejderha: [buildEjderha, animEjderha],
@@ -5502,7 +5598,22 @@ const EMODEL = (function (G0) {
     r.k.parts=[];r.meta=[];r.k.stack=[new THREE.Matrix4()];r.mood=0;r.fx(0,0);r.uv(null);d.extras=[];d.tex=null;
     const B=n=>r.bones[r.map[n]].pos, iron='#4a494b',bone='#a79980',shade='#24262c',ember='#ac3b38';
     const claw=(name,p,sd,rad=.10)=>{r.on(name).fx(0,.35);for(let j=0;j<3;j++)cone(r,[p[0]+sd*j*rad*.8,p[1],p[2]+j*.04],[sd*.22,-.8,.6],rad*3.1,rad*.28,bone);};
-    if(type==='kraljole'){
+    if(type==='kopukusta'||type==='aytavsan'){
+      const lunar=type==='aytavsan';
+      r.on('body').fx(0,.2).add(G.sphere(28,20),lunar?'#3a3447':'#39413d',[0,1.20,0],null,[.86,1.04,.72]);
+      boneMask(r,'body',[0,2.00,.30],.55,1);
+      for(const sd of [-1,1]){
+        const ear=sd<0?'earL':'earR';
+        r.on(ear).seg([sd*.40,2.18,-.02],[sd*.70,3.10,-.16],.15,iron,.07,12);
+        cone(r,[sd*.70,3.10,-.16],[sd*.25,1,-.1],.35,.10,bone);
+        r.on('body').seg([sd*.72,1.52,.1],[sd*1.16,.58,.4],.17,shade,.095,12);
+        claw('body',[sd*1.17,.54,.43],sd,.12);
+        r.seg([sd*.43,.55,.04],[sd*.49,.16,.25],.21,iron,.16,12);
+      }
+      r.on('tip').fx(0,.5).add(G.torus(TAU,.07,24),lunar?'#8f779f':'#819083',[0,2.75,-.10],[PI/2,0,0],[.73,.73,.50]);
+      for(let k=0;k<5;k++)cone(r,[(k-2)*.24,1.25,-.66],[(k-2)*.10,.3,-1],.66,.11,bone);
+    }else if(type==='kraljole'){
+
       r.on('body').fx(0,.22).add(G.sphere(28,20),shade,[0,1.06,-.06],null,[1.00,.91,.74]);
       for(let j=-3;j<=3;j++)cone(r,[j*.22,.54,-.12],[j*.12,-1,.10],.58,.20,j%2?'#343332':'#2c2e34');
       for(let j=0;j<5;j++){const y=.61+j*.20;for(const sd of [-1,1])r.seg([sd*.06,y,.73],[sd*(.77-j*.09),y+.08,.47],.055,bone,.042,10);}

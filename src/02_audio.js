@@ -1061,6 +1061,9 @@ const AUD = (() => {
       }
     };
   }
+  // The two opening chapters reuse the dark journey music.
+  THEMES.tuvalet = Object.assign({}, THEMES.orman, { bpm: 88 });
+  THEMES.ay = Object.assign({}, THEMES.title, { bpm: 82 });
   // Chord tones ascending from lo.
   function voice(ch, lo, n) {
     const pcs = ch.iv.map(i => (ch.r + i) % 12), out = [];
@@ -1594,5 +1597,23 @@ AUD.LINES = /*SESLER*/{
   "tuccar_merhaba": "Kül Tüccarı. Topladığın lanet sikkeleri karşılığında sana birkaç emanet verecek.",
   "tuccar_iksir": "Kan iksiri çantanda. Gücün tükenirken kullan.",
   "tuccar_bulut": "Mezar Örtüsü bu geçitte seni biraz daha koruyacak.",
-  "tuccar_parilti": "Silahına kara mühür kazındı. Artık daha sert vuracak."
+  "tuccar_parilti": "Silahına kara mühür kazındı. Artık daha sert vuracak.",
+  "tuvalet": "Paslı Hamam. Taşların altında bir lanet kaynıyor. Demir dişli Bilbo yanında; mühürleri parçala ve kapıyı aç.",
+  "ay": "Kül Ayı. Sessiz kraterlerden yaratıklar yükseliyor. Gölgeden gelen darbeleri izle; burada merhamet yok.",
+  "kopukusta_giris": "Köpük Celladı yolu tutuyor. Lanetli köpüklerini aş, yere bıraktığı mühürleri topla ve savunmasını kır.",
+  "kopukusta_bitti": "Köpük Celladı kül oldu. Kül roketi hazır. Bilbo ile Kül Ayı geçidine ilerle.",
+  "roket_yolculuk": "Demir dişli Bilbo yanında. Kül roketi Paslı Hamam’dan ayrılıyor; Kül Ayı’na yükseliyoruz.",
+  "aytavsan_giris": "Ay Yırtıcısı kraterden çıkıyor. Üç yıldız mührünü ele geçir; gücü kırıldığında saldır.",
+  "aytavsan_bitti": "Ay Yırtıcısı çöktü. Yıldız mekiği seni Yas Ormanı’na taşıyacak.",
+  "mekik_yolculuk": "Yıldız mekiği Kül Ayı’ndan ayrılıyor. Aşağıda Yas Ormanı var. Av burada devam edecek.",
+  "sabun_oyun": "Üç lanet mührünü topla. Köpük Celladı’nın savunması kırılacak.",
+  "ay_oyun": "Üç yıldız mührünü ele geçir. Ay Yırtıcısı’nın savunmasını parçala.",
+  "hayal_oyun_bitti": "Mühürler toplandı. Yaratığın gücü kırıldı. Şimdi saldır.",
+  "ilk_kakacik": "Çamur Hortlağı. Yavaş görünür; yaklaşınca sert vurur.",
+  "ilk_cisdamlasi": "Zehir Damlası uzaktan saldırır. Atışından yana kaç.",
+  "ilk_sabunkopugu": "Lanet Köpüğü havada süzülüyor. Dağılmadan önce silahını göster.",
+  "ilk_ayponpon": "Ay Avcısı üstüne sıçrar. Kırmızı işareti görünce yana çekil.",
+  "ilk_yildizcik": "Sönmüş Yıldız uzağından vurur. Açısını boz ve saldır.",
+  "ilk_kratercik": "Krater Pusucusu toprağın içinden yükselir. Çıkacağı noktadan uzaklaş.",
+  "bilbo_kemik": "Bilbo’ya kemik at. Demir dişleri yakındaki yaratıklara karanlık lokmalar savuracak."
 }/*SESLER-SON*/;

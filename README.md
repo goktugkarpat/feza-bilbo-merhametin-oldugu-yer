@@ -2,11 +2,11 @@
 
 **Yetişkinler için karanlık bir masal.** Basit çizgi film görünümünün içinde lanetlenmiş topraklar ve merhametsiz bir savaş. Feza kendi lanetini silah yapan bir iblis avcısıdır; Bilbo geniş çeneli, pençeli, sırtı dikenli bir canavar köpek. Karanlığa karanlıkla karşılık verirler.
 
-[Oyunu aç](https://goktugkarpat.github.io/feza-bilbo-merhametin-oldugu-yer/)
+[Oyunu aç](https://goktugkarpat.github.io/feza-huysuzlara-karsi-twisted/)
 
 Feza ve Bilbo Huysuzlara Karşı v49 temelinden ayrı hazırlanmıştır. Kamera, dokunmatik hareket, gölge kalitesi ve hafif çizim yapısı korunur. Kullanıcının son isteğiyle karanlık mekânların ortam ışığı okunurluk için ölçülü artırılmıştır. Kayıtlar ve internetsiz kopya bu oyuna özeldir.
 
-Son ayar: altı bölümde ortam ışığı ve görüntü aydınlığı artırıldı, ekran kenarındaki karartma hafifletildi. Maden ve kale biraz daha fazla aydınlatıldı. Bilbo her ısırmada havlamaz; normal havlamalar arasında en az dört saniye vardır. Isırma hızı ve tanklama gücü korunur; koruyucu havlamanın ardından normal havlama hemen tekrarlanmaz.
+Son ayar: sekiz bölümde ortam ışığı ve görüntü aydınlığı artırıldı, ekran kenarındaki karartma hafifletildi. Maden ve kale biraz daha fazla aydınlatıldı. Bilbo her ısırmada havlamaz; normal havlamalar arasında en az dört saniye vardır. Isırma hızı ve tanklama gücü korunur; koruyucu havlamanın ardından normal havlama hemen tekrarlanmaz.
 
 ## Açılış
 
@@ -14,10 +14,12 @@ Son ayar: altı bölümde ortam ışığı ve görüntü aydınlığı artırıl
 - İnternette yukarıdaki oyun bağlantısını açın. iPad Safari › Paylaş › Ana Ekrana Ekle ile eklenebilir. İlk yüklemeden sonra internetsiz açılır.
 - `yayinla.command` değişiklikleri bu oyunun GitHub deposuna gönderir.
 
-## Altı mekân ve efendileri
+## Sekiz mekân ve efendileri
 
 | Mekân | Efendisi |
 |---|---|
+| Paslı Hamam | Köpük Celladı |
+| Kül Ayı | Ay Yırtıcısı |
 | Yas Ormanı | Çürük Taç |
 | Çürüme Vadisi | Veba Rahibi |
 | Fısıltı Madenleri | Mezar Kazıcısı |
@@ -51,6 +53,21 @@ Can bitince son yemin taşına dönülür. İlerleme yalnız **Mola › Kaydet**
 
 ## Ses
 
-96 yeni Türkçe anlatım kaydı; toplam yaklaşık **7 dakika 24 saniye**. Doğal kadın sesi `tr-TR-EmelNeural`; kayıt sessizlikleri ffmpeg ile kırpıldı. Dokuz gerilimli müzik düzeni ve 91 savaş/arayüz sesi mevcut ses motorunda üretilir. Tarayıcı konuşma sesi kullanılmaz.
+114 Türkçe anlatım kaydı; toplam yaklaşık **9 dakika 2 saniye**. Doğal kadın sesi `tr-TR-EmelNeural`; kayıt sessizlikleri ffmpeg ile kırpıldı. Dokuz gerilimli müzik düzeni ve 91 savaş/arayüz sesi mevcut ses motorunda üretilir. Tarayıcı konuşma sesi kullanılmaz.
 
 Bilbo havlamasının kaynak ve izin bilgisi `assets/audio/CREDITS.md` içindedir. Three.js lisansı kendi dosyasında korunur. `.voice-tools` ve `.ses_onbellek` yalnız ses üretim araçlarıdır; yayımlanmaz.
+
+## Bölüm yapısı ve final haritası
+
+Macera güncel Feza Huysuzlara Karşı ile aynı sekiz bölümlük sırayı ve kısa bölüm yapısını kullanır: her bölümde 6 ana alan ve en fazla 2 yan alan vardır; kale koridorları da kısadır. Normal modda boss canı kısa macera ayarına uyarlanır; Zor modu korunur.
+
+1. Paslı Hamam — Köpük Celladı
+2. Kül Ayı — Ay Yırtıcısı
+3. Yas Ormanı — Çürük Taç
+4. Çürüme Vadisi — Veba Rahibi
+5. Fısıltı Madenleri — Mezar Kazıcısı
+6. Kül Ocağı — Kül Muhafızı
+7. Veba Şehri — Yeminbozan
+8. Merhametsiz Kale — Gece Yutan
+
+İlk iki bölüm arasındaki uçuşlar kendiliğinden başlar. Macera tamamlanınca **Geçit Haritası** açılır; sekiz bölgeye başlangıç, mola, oyun ve bitiş ekranlarından dönülebilir. Seviye, çanta ve eşyalar korunur. Haritanın açılması bu oyuna ait ayrı kayıtta hatırlanır; ilerleme yalnız Mola › Kaydet ile saklanır. Eski altı bölümlük kayıtlar mekân kimliğine göre doğru bölüme taşınır.

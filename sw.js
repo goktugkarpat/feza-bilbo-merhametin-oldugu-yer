@@ -1,6 +1,6 @@
 // İnternetsiz çalışma: ilk açılıştan sonra oyun (kod, 3D kütüphanesi, gömülü sesler) cihazda saklanır.
 // Dosya eklenirse CORE listesine ekle; önemli değişiklikte CACHE sürümünü artır.
-const CACHE = 'feza-bilbo-merhamet-v7-cleanup1';
+const CACHE = 'feza-bilbo-merhamet-v9-item-names';
 const SRC = ['00_core', '01_textures', '02_audio', '03_fx', '04_feza', '04_bilbo', '04_bilbo_follow', '05_enemies', '06_level', '07_game', '08_skills', '09_ui'];
 const CORE = ['./', './index.html', './vendor/three.js', './sesler.js', './bilbo-ses.js', './assets/audio/bilbo-hav-hav.mp3', './manifest.webmanifest', './src/ui.css', './icons/icon.svg', './assets/audio/CREDITS.md', './icons/apple-touch-icon.png', './icons/icon-192.png', './icons/icon-512.png',
   ...SRC.map(n => './src/' + n + '.js')];

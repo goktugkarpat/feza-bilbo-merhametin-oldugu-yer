@@ -34,7 +34,7 @@ const UI = (() => {
     M.EMODEL = get(() => (typeof EMODEL !== 'undefined' ? EMODEL : null));
     M.EDEF = get(() => (typeof EDEF !== 'undefined' ? EDEF : null));
   }
-  const zoneCount = () => (M.ZONES && M.ZONES.length) || 6;   // Round 5: orman, kefir, magara, yanardag, sehir, kale
+  const zoneCount = () => (M.ZONES && M.ZONES.length) || 8;
   const warned = {};
   function warn(k, e) { if (!warned[k]) { warned[k] = 1; console.warn('[UI] ' + k, e); } }
   function safe(k, f) { try { return f(); } catch (e) { warn(k, e); return undefined; } }
@@ -434,6 +434,8 @@ const UI = (() => {
     const sb = D.sbtns = el('div', 'u-sbtns', tr);
     D.bagBtn = el('button', 'u-rbtn', sb, '<span class="u-emo">⛓</span><span class="u-dot"></span>');
     D.pauseBtn = el('button', 'u-rbtn', sb, SVG.pause + '<span class="u-hold"></span>');   // 0.5 s hold
+    D.dreamBtn = el('button', 'u-rbtn u-dream-open u-hide', sb, '<span class="u-emo">🗺️</span><span class="u-dream-label">Harita</span>');
+    D.dreamBtn.setAttribute('aria-label', 'Geçit haritasını aç');
     const mini = D.mini = el('div', 'u-mini', tr);
     D.map = el('canvas', '', mini);
 
@@ -469,6 +471,9 @@ const UI = (() => {
     D.atkBlade = D.atk.querySelector('.u-blade');
     D.atk.style.setProperty('--x', 0); D.atk.style.setProperty('--y', 0);
     D.sk = [];
+    D.boneBtn = el('button', 'u-skill u-bone', pad, '<span class="u-ico">🦴</span><span class="u-cd"></span><span class="u-cdn"></span><span class="u-key">K</span><span class="u-bone-label">Bilbo</span>');
+    D.boneBtn.style.setProperty('--x', 0); D.boneBtn.style.setProperty('--y', -265);
+    D.boneBtn.setAttribute('aria-label', 'Bilbo’ya kemik at');
     const nSk = clamp((M.SKILLS && M.SKILLS.length) || 3, 1, ARC.length);
     for (let i = 0; i < nSk; i++) {
       const b = el('button', 'u-skill u-hide', pad, `<span class="u-ico"></span><span class="u-cd"></span><span class="u-cdn"></span><span class="u-key">${i + 1}</span>`);
@@ -477,7 +482,7 @@ const UI = (() => {
       D.sk.push({ b, ico: b.firstChild, cd: b.children[1], cdn: b.children[2], shown: false, p: -1, n: -1 });
     }
 
-    buildTitle(root); buildChoice(root); buildPause(root); buildBag(root); buildWin(root); buildMerchant(root);
+    buildTitle(root); buildChoice(root); buildPause(root); buildBag(root); buildWin(root); buildMerchant(root); buildDreamMap(root); buildDreamTravel(root);
     // subtitles live above every screen (the victory line plays over the victory panel)
     D.sub = el('div', 'u-sub', root, '<div class="u-subico">◆</div><div class="u-subtxt"></div>');
     D.subIco = D.sub.firstChild; D.subTxt = D.sub.lastChild;
@@ -503,6 +508,7 @@ const UI = (() => {
     const bt = D.tbtns = el('div', 'u-tbtns', t);
     D.playBtn = el('button', 'u-btn g', bt, SVG.play + '<span>Yola Çık</span>');   // always: a new game (a saved game is never touched)
     D.contBtn = el('button', 'u-btn b', bt, SVG.cont + '<span>Devam Et</span>');   // only with a save (Mola › Kaydet)
+    D.titleMap = el('button', 'u-btn p u-hide', bt, '<span>🗺️ Geçit Haritası</span>');
     const tg = el('div', 'u-ttog', t);
     D.tMus = el('button', 'u-rbtn', tg, SVG.note + '<span class="u-slash"></span>'); D.tMus.dataset.tog = 'music';   // sound effects: pause menu only
   }
@@ -569,6 +575,7 @@ const UI = (() => {
     D.resume = el('button', 'u-btn g wide', m, SVG.play + '<span>Devam Et</span>');
     D.difficultyBtn = el('button', 'u-btn p wide', m, '<span>Zorluk: Normal</span>');
     D.saveBtn = el('button', 'u-btn b wide', m, SVG.save + '<span>Kaydet</span>');
+    D.pauseMap = el('button', 'u-btn p wide u-hide', m, '<span>🗺️ Geçit Haritası</span>');
     D.restart = el('button', 'u-btn o wide', m, SVG.again + '<span>Baştan Başla</span>');
     const dif = el('div', 'u-difficulty', p);
     el('div', 'u-difficulty-hint', dif, 'Seçimin hemen uygulanır.<br> İlerlemen ve eşyaların korunur.');
@@ -711,9 +718,167 @@ const UI = (() => {
     D.winBoss = el('div', 'u-wboss', p);   // every zone's boss, cheered up (portraits)
     D.winChips = el('div', 'u-chips', p);
     D.again = el('button', 'u-btn g wide', p, SVG.play + '<span>Tekrar Yola Çık</span>');
+    D.winMap = el('button', 'u-btn b wide u-hide', p, '<span>🗺️ İstediğin Yere Git</span>');
+    D.winMapHint = el('div', 'u-dream-unlock u-hide', p, 'Geçit haritan açıldı! Bir adaya dokun, yeniden keşfet.');
+  }
+
+  // The dream atlas is made from local SVG artwork: it also works offline and from file://.
+  const DREAM_PLACES = [
+    ['tuvalet', 'Paslı Hamam', 'Pas ve zehirle kapanan geçit', '#67ded6', 14, 29],
+    ['ay', 'Kül Ayı', 'Sönmüş yıldızların altında av', '#c9b7f6', 38, 25],
+    ['orman', 'Yas Ormanı', 'Kuru dalların arasında kayıp ruhlar', '#82ce82', 62, 29],
+    ['kefir', 'Çürüme Vadisi', 'Zehir akıntıları ve gömülmüş mezarlar', '#f3d49b', 86, 25],
+    ['magara', 'Fısıltı Madenleri', 'Çökmüş galerilerde yankılanan fısıltılar', '#9fb6ec', 86, 69],
+    ['yanardag', 'Kül Ocağı', 'Kırık örs ve köz nöbetçileri', '#f6a888', 62, 73],
+    ['sehir', 'Veba Şehri', 'Karantina sokakları ve boş kafesler', '#dfa5c5', 38, 69],
+    ['kale', 'Merhametsiz Kale', 'Tutsak tahtın son gölgesi', '#e3b4ed', 14, 73]
+  ];
+  function dreamArt(id, color) {
+    const n=DREAM_PLACES.findIndex(p=>p[0]===id),col=['#879386','#8e7e9d','#70816e','#8e9070','#7a8095','#a77765','#8b7183','#827386'][n]||'#827386';
+    const scene=id==='ay'?'<circle cx="85" cy="76" r="41" fill="#514956"/><circle cx="72" cy="61" r="11" fill="#343139"/><circle cx="102" cy="91" r="15" fill="#343139"/>':id==='orman'?'<path d="M43 119V49M43 69L22 50M43 85L65 63M132 119V40M132 66L112 49M132 83L150 65" stroke="#4a5049" stroke-width="9" fill="none"/>':id==='yanardag'?'<path d="M20 126L66 50H106L155 126Z" fill="#4b3f3e"/><path d="M65 50L84 77L106 50M84 77L74 110L100 127" stroke="#b16c51" stroke-width="7" fill="none"/>':'<path d="M25 122V64H48V43H70V70H108V42H132V62H155V122Z" fill="#41414a" stroke="#71696b" stroke-width="3"/><path d="M69 123V93Q90 62 111 93V123" fill="#24242c"/>';
+    return '<svg viewBox="0 0 180 150" aria-hidden="true"><ellipse cx="90" cy="124" rx="77" ry="18" fill="#25252d" stroke="'+col+'" stroke-width="2"/>'+scene+'<path d="M76 91Q73 69 90 67Q108 69 104 91L98 99V108H82V99Z" fill="#b0a28d"/><path d="M79 83L86 84M94 84L101 83M87 92L90 88L93 92M86 100V107M94 100V107" stroke="#343039" stroke-width="3" fill="none"/></svg>';
+  }
+  function accessiblePress(b, fn, menu = true) {
+    onPress(b, fn, { menu });
+    b.addEventListener('keydown', e => { if (!e.repeat && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.stopPropagation(); fn(); } });
+  }
+  function mapUnlocked() { return !!(M.GAME && M.GAME.mapUnlocked && safe('mapUnlocked', () => M.GAME.mapUnlocked())); }
+  function syncDreamUnlock() {
+    const unlocked = mapUnlocked();
+    [D.dreamBtn, D.titleMap, D.pauseMap, D.winMap, D.winMapHint].forEach(b => { if (b) b.classList.toggle('u-hide', !unlocked); });
+  }
+  function buildDreamMap(root) {
+    D.dreamScreen = el('div', 'u-screen u-dream-screen', root);
+    D.dreamScreen.setAttribute('role', 'dialog'); D.dreamScreen.setAttribute('aria-modal', 'true'); D.dreamScreen.setAttribute('aria-labelledby', 'dreamTitle');
+    const panel = el('div', 'u-dream-panel', D.dreamScreen);
+    el('span', 'u-dream-kicker', panel, 'FEZA VE BİLBO’NUN');
+    const heading = el('h2', 'u-dream-title', panel, 'Geçit Haritası'); heading.id = 'dreamTitle';
+    el('p', 'u-dream-hint', panel, 'Bir bölge seç. Açılan geçitler seni bekliyor.');
+    const board = D.dreamBoard = el('div', 'u-dream-board', panel);
+    const sky = el('div', 'u-dream-starfield', board);
+    sky.setAttribute('aria-hidden', 'true');
+    for (let i = 0; i < 32; i++) {
+      const star = el('i', 'u-dream-star' + (i % 5 === 0 ? ' bright' : ''), sky, i % 5 === 0 ? '✦' : '');
+      star.style.left = ((i * 47 + 7) % 97 + 1) + '%'; star.style.top = ((i * 31 + 11) % 93 + 2) + '%';
+      star.style.setProperty('--star-delay', (-i * .37) + 's'); star.style.setProperty('--star-time', (3.4 + i % 6 * .55) + 's');
+    }
+    el('div', 'u-dream-ornaments', board, '<svg viewBox="0 0 1000 560" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#d7d5ff" stroke-width="1" opacity=".32"><path d="M45 74L82 40L114 64L151 43M701 52L734 31L758 53L797 28M433 498L464 474L488 513L518 488M30 383L51 354L73 379L94 350"/></g><g fill="#efe3bc" opacity=".55"><circle cx="45" cy="74" r="2.5"/><circle cx="82" cy="40" r="3"/><circle cx="114" cy="64" r="2"/><circle cx="151" cy="43" r="2.5"/><circle cx="701" cy="52" r="2"/><circle cx="734" cy="31" r="3"/><circle cx="758" cy="53" r="2"/><circle cx="797" cy="28" r="2.5"/><circle cx="433" cy="498" r="2"/><circle cx="464" cy="474" r="2.5"/><circle cx="488" cy="513" r="2"/><circle cx="518" cy="488" r="3"/></g><g fill="none" stroke="#b9e9df" stroke-width="1.2" opacity=".25"><path d="M90 296q24-12 48 0t48 0M732 294q24-12 48 0t48 0M358 374q20-10 40 0t40 0M180 472q20-10 40 0t40 0"/><path d="M90 308q24-12 48 0t48 0M732 306q24-12 48 0t48 0"/></g><g fill="#dcc6e8" opacity=".35"><path d="M578 287q-17-10-23 4q19 4 23-4q15-11 21 2q-18 8-21-2"/><path d="M205 47q-15-8-19 4q16 3 19-4q14-9 18 3q-16 5-18-3"/></g></svg>');
+    el('div', 'u-dream-compass', board, '<span>✦</span><small>GEÇİT</small>');
+    el('div', 'u-dream-route', board, '<svg viewBox="0 0 1000 560" preserveAspectRatio="none" aria-hidden="true"><path d="M140 162Q250 58 380 140T620 162Q750 40 860 140Q985 263 860 386Q745 494 620 409T380 386Q256 506 140 409" fill="none" stroke="#d1bbef" stroke-width="13" stroke-opacity=".13"/><path d="M140 162Q250 58 380 140T620 162Q750 40 860 140Q985 263 860 386Q745 494 620 409T380 386Q256 506 140 409" fill="none" stroke="#ffebb0" stroke-width="3" stroke-dasharray="5 13" stroke-linecap="round"/></svg>');
+    D.dreamPlaces = DREAM_PLACES.map(([id, name, detail, color, x, y], i) => {
+      const b = el('button', 'u-dream-island', board, dreamArt(id, color) + `<span class="u-island-sparkles" aria-hidden="true"><i>✧</i><i>✦</i><i>✧</i></span><span class="u-island-name">${esc(name)}</span><span class="u-island-number">${i + 1}</span><span class="u-island-current">Buradasın</span>`);
+      b.style.setProperty('--spark-delay', (-i * .7) + 's');
+      b.style.setProperty('--ix', x + '%'); b.style.setProperty('--iy', y + '%'); b.style.setProperty('--island-color', color);
+      b.dataset.zone = id; b.setAttribute('aria-label', name + ': ' + detail); b.title = detail;
+      accessiblePress(b, () => travelTo(i));
+      return b;
+    });
+    D.dreamClose = el('button', 'u-dream-close', panel, SVG.close + '<span>Geri Dön</span>');
+    accessiblePress(D.dreamClose, closeDreamMap);
+    D.dreamScreen.addEventListener('keydown', e => {
+      if (e.code === 'Escape') { e.preventDefault(); e.stopPropagation(); closeDreamMap(); }
+      if (e.code === 'Tab') {
+        const choices = [...D.dreamPlaces, D.dreamClose], at = choices.indexOf(document.activeElement);
+        e.preventDefault(); e.stopPropagation(); choices[(at + (e.shiftKey ? choices.length - 1 : 1)) % choices.length].focus();
+      }
+    });
+  }
+  function openDreamMap() {
+    if (!mapUnlocked() || S.busy || S.menu === 'dream') return;
+    if (S.mode === 'play' && !S.menu && !gameAllowsMenu()) return;
+    S.dreamReturn = { menu: S.menu, paused: S.paused, focus: document.activeElement };
+    if (S.menu) showScreen(S.menu === 'bag' ? D.bagS : S.menu === 'merchant' ? D.shop : D.pause, false);
+    S.menu = 'dream'; setPaused(true);
+    const current = M.GAME && M.GAME.P && M.GAME.P.zone;
+    D.dreamPlaces.forEach((b, i) => { b.classList.toggle('current', S.mode === 'play' && i === current); });
+    showScreen(D.dreamScreen, true); D.dreamClose.focus({ preventScroll: true });
+  }
+  function closeDreamMap() {
+    if (S.menu !== 'dream') return;
+    showScreen(D.dreamScreen, false);
+    const back = S.dreamReturn || {}; S.menu = back.menu || null; setPaused(!!back.paused);
+    if (S.menu) showScreen(S.menu === 'bag' ? D.bagS : S.menu === 'merchant' ? D.shop : D.pause, true);
+    if (back.focus && back.focus.focus) back.focus.focus({ preventScroll: true });
+    S.dreamReturn = null;
+  }
+  async function travelTo(index) {
+    const g = M.GAME;
+    if (!g || !g.travelTo || !mapUnlocked() || S.busy) return;
+    S.busy = true;
+    try {
+      await fade(1, 0.4, 'load');
+      aud('stopVoice'); ensureTex(index);
+      clearBanners(); clearCards(); hideBoss(); S.cine = null;
+      const ok = await g.travelTo(index);
+      if (ok === false) { fade(0, 0.4, null); return; }
+      showScreen(D.dreamScreen, false); showScreen(D.win, false); showScreen(D.pause, false); showScreen(D.shop, false); showScreen(D.bagS, false);
+      S.menu = null; S.dreamReturn = null; setPaused(false); setMode('play');
+      D.conf.innerHTML = '';
+      refreshAllSkills(); portraitSoon(0); renderNow(); await frames(2); fade(0, 0.6, null);
+    } catch (e) { warn('dream travel', e); fade(0, 0.4, null); }
+    finally { S.busy = false; }
+  }
+  function throwBone() {
+    const g = M.GAME; if (!g || !playing() || !g.bone) return;
+    if (safe('bone', () => g.bone())) bump(D.boneBtn, 1.15, true); else nope(D.boneBtn, true);
+  }
+  function buildDreamTravel(root) {
+    D.dreamTravel = el('div', 'u-screen u-dream-travel', root);
+    D.dreamTravel.setAttribute('role', 'img');
+    D.travelArt = el('div', 'u-dream-travel-art', D.dreamTravel);
+  }
+  function journeyArt(forest) {
+    return `<svg viewBox="0 0 760 310" aria-hidden="true"><defs><linearGradient id="journeySky" x2="1" y2="1"><stop stop-color="${forest ? '#315768' : '#32677b'}"/><stop offset="1" stop-color="#453466"/></linearGradient><linearGradient id="rocketBody" x2="1" y2="0"><stop stop-color="#f5edd6"/><stop offset=".5" stop-color="#fffceb"/><stop offset="1" stop-color="#b4dcd6"/></linearGradient></defs>
+    <g class="u-journey-distant-stars" fill="#eae4ff">${Array.from({ length: 35 }, (_, i) => `<circle cx="${(i * 113 + 27) % 750}" cy="${(i * 47 + 14) % 287}" r="${i % 4 === 0 ? 1.5 : .75}" opacity="${.25 + i % 5 * .12}"/>`).join('')}</g>
+    <g fill="#ffedb0"><path d="M122 44l3 9 10 2-8 6 2 10-7-6-9 5 3-10-7-6 10-1Z"/><path d="M483 74l3 9 10 2-8 6 2 10-7-6-9 5 3-10-7-6 10-1Z"/><circle cx="571" cy="39" r="3"/><circle cx="203" cy="60" r="2"/><circle cx="68" cy="170" r="3"/><circle cx="520" cy="183" r="3"/><circle cx="707" cy="133" r="2"/></g>
+    ${forest ? '<g transform="translate(607 127)"><circle r="64" fill="#8bcb9c"/><path d="M-38 37l15-63 18 63M-9 30l20-75 22 75M20 39l14-58 18 58" fill="#438d70"/><path d="M-53 45q52-24 107 0" fill="none" stroke="#e3d69a" stroke-width="5"/></g>' : '<g transform="translate(614 108)"><circle r="62" fill="#efebd3"/><ellipse cx="-23" cy="-20" rx="12" ry="9" fill="#c7c4b4"/><ellipse cx="21" cy="21" rx="19" ry="12" fill="#cfccba"/><circle cx="-16" cy="33" r="8" fill="#cfccba"/></g>'}
+    <path class="u-journey-path" d="M257 225Q434 314 601 171" fill="none" stroke="#fff1b6" stroke-width="3" stroke-dasharray="5 10" opacity=".7"/>
+    <g class="u-journey-ground"><ellipse cx="165" cy="272" rx="90" ry="15" fill="${forest ? '#d8cff1' : '#94ded9'}"/><path d="M74 272h181l-24 23H95Z" fill="#7c83a5"/><g fill="#d5fff6" stroke="#90cccb"><circle cx="79" cy="232" r="14"/><circle cx="250" cy="239" r="18"/><circle cx="61" cy="269" r="10"/></g></g>
+    <g class="u-journey-rocket" transform="translate(285 157) rotate(24)">
+      <path class="u-rocket-flame" d="M-24 78Q-25 116 0 139Q25 113 23 78" fill="#ffe6a0"/><path class="u-rocket-flame" d="M-13 83Q-12 112 0 119Q12 108 13 83" fill="#9de6ef"/>
+      <path d="M-38 16Q-67 37-70 77L-29 58M38 16Q67 37 70 77L29 58" fill="${forest ? '#82c4a7' : '#e2a2bb'}" stroke="#f8e5ab" stroke-width="3"/>
+      <path d="M0-99Q-51-65-43 20L-31 81H31L43 20Q51-65 0-99Z" fill="url(#rocketBody)" stroke="#efd9a0" stroke-width="4"/>
+      <path d="M0-99Q-23-83-35-56H35Q24-84 0-99Z" fill="${forest ? '#6fb99f' : '#d790ab'}"/><path d="M-34 64H34L30 83H-30Z" fill="#d1ac72"/>
+      <circle cy="-6" r="36" fill="#508baf" stroke="#d5b476" stroke-width="7"/><circle cy="-6" r="30" fill="#91dfe2"/>
+      <g class="u-journey-passengers"><g transform="translate(-11 -8)"><circle cy="-6" r="13" fill="#ffd2ac"/><path d="M-13-6q-3-20 12-19q17-2 14 17l-9-7-9 5" fill="#83553b"/><circle cx="-5" cy="-5" r="1.7" fill="#473347"/><circle cx="5" cy="-5" r="1.7" fill="#473347"/><path d="M-4 2q4 4 8 0" stroke="#a96965" fill="none" stroke-width="1.5"/><path d="M-12 16q11-17 23 0" fill="#ffd879"/></g>
+      <g transform="translate(15 7)"><ellipse rx="13" ry="14" fill="#deb07c"/><ellipse cx="-11" cy="0" rx="5" ry="12" fill="#926341"/><ellipse cx="11" cy="0" rx="5" ry="12" fill="#926341"/><circle cx="-4" cy="-2" r="1.7" fill="#44313e"/><circle cx="4" cy="-2" r="1.7" fill="#44313e"/><ellipse cy="4" rx="3" ry="2" fill="#44313e"/></g></g>
+      <path d="M-9 44l9-10 9 10-9 9Z" fill="#c0b0ef"/><circle cx="-31" cy="36" r="3" fill="#f9d88b"/><circle cx="31" cy="36" r="3" fill="#f9d88b"/>
+      ${forest ? '<path d="M-61 64q10-31 30-24q-8 20-30 24M61 64Q51 33 31 40Q39 60 61 64" fill="#a0d7a8" stroke="#69a88e" stroke-width="2"/>' : ''}
+    </g>
+    <g class="u-boarding-feza" transform="translate(160 214)"><path d="M-8 19l-5 25M9 19l6 25" stroke="#4f8eb1" stroke-width="12" stroke-linecap="round"/><path d="M-20 45h13M10 45h14" stroke="#f09380" stroke-width="7" stroke-linecap="round"/><path d="M-15-4Q0-13 14-4l3 28h-34Z" fill="#ffdc81" stroke="#bc9b67" stroke-width="2"/><path d="M-13 3l-10 12M12 2l16-12" stroke="#f8cba6" stroke-width="8" stroke-linecap="round"/><circle cy="-22" r="17" fill="#ffd3ac"/><path d="M-17-21q-4-24 16-24q21-1 18 23L7-32-5-27-10-33Z" fill="#83553b"/><circle cx="-5" cy="-22" r="2" fill="#473347"/><circle cx="6" cy="-22" r="2" fill="#473347"/><path d="M-5-13q6 6 12-1" stroke="#a96965" fill="none" stroke-width="2" stroke-linecap="round"/><path d="M-8 6h16l-2 11H-6Z" fill="#f5b96e"/></g>
+    <g class="u-boarding-bilbo" transform="translate(207 246)"><ellipse cx="0" cy="1" rx="21" ry="15" fill="#bf8d57"/><path d="M-12 9l-2 13M12 9l3 13" stroke="#c18b51" stroke-width="7" stroke-linecap="round"/><path d="M-20 1q-18-9-13-19" fill="none" stroke="#c18b51" stroke-width="7" stroke-linecap="round"/><ellipse cx="11" cy="-13" rx="16" ry="17" fill="#e0b27c"/><ellipse cx="-1" cy="-10" rx="6" ry="15" fill="#91643f" transform="rotate(14 -1 -10)"/><ellipse cx="24" cy="-10" rx="6" ry="14" fill="#91643f"/><ellipse cx="12" cy="-4" rx="10" ry="7" fill="#f5dcac"/><circle cx="6" cy="-16" r="2" fill="#44313e"/><circle cx="17" cy="-16" r="2" fill="#44313e"/><ellipse cx="12" cy="-7" rx="3" ry="2" fill="#44313e"/><path d="M0 1q12 5 22-2" fill="none" stroke="#60bfc2" stroke-width="4"/></g>
+    </svg>`;
+  }
+  function showDreamTravel(d) {
+    if (!d || typeof d.proceed !== 'function') return;
+    if (S.dreamJourney) finishDreamTravel();
+    if (S.menu) closeMenu();
+    aud('stopVoice');
+    const trip = S.dreamJourney = { proceed: d.proceed, forest: d.to === 'orman', flying: false, done: false, timers: [] };
+    D.dreamTravel.setAttribute('aria-label', trip.forest ? 'Feza ve Bilbo yıldız yapraklı mekiğe binip ormana uçuyor.' : 'Feza ve Bilbo kül roketine binip Ay’a uçuyor.');
+    D.dreamTravel.classList.toggle('forest', trip.forest);
+    D.travelArt.innerHTML = journeyArt(trip.forest); D.travelArt.classList.remove('flying');
+    S.menu = 'dream-travel'; setPaused(true); D.root.classList.add('journey-on'); showScreen(D.dreamTravel, true);
+    trip.timers.push(setTimeout(() => launchDreamTravel(trip), 900));
+  }
+  function launchDreamTravel(expected) {
+    const trip = S.dreamJourney; if (!trip || trip.done || trip.flying || (expected && expected !== trip)) return;
+    trip.flying = true; D.travelArt.classList.add('flying');
+    // The outgoing encounter can queue one last line on its transition frame.
+    aud('stopVoice');
+    aud('say', trip.forest ? 'mekik_yolculuk' : 'roket_yolculuk', { prio: 3, interrupt: true });
+    trip.timers.push(setTimeout(() => finishDreamTravel(trip), 6100));
+  }
+  function finishDreamTravel(expected) {
+    const trip = S.dreamJourney; if (!trip || trip.done || (expected && expected !== trip)) return;
+    trip.done = true; trip.timers.forEach(clearTimeout); S.dreamJourney = null;
+    aud('stopVoice');
+    showScreen(D.dreamTravel, false); D.root.classList.remove('journey-on'); S.menu = null; setPaused(false); trip.proceed();
   }
 
   function wireButtons() {
+    [D.dreamBtn, D.titleMap, D.pauseMap, D.winMap].forEach(b => accessiblePress(b, openDreamMap));
+    accessiblePress(D.boneBtn, throwBone, false);
     onPress(D.playBtn, () => startGame(false), { menu: true });
     onPress(D.contBtn, () => startGame(true), { menu: true });
     onPress(D.tMus, () => setPref('music', !S.prefs.music), { menu: true });
@@ -819,6 +984,9 @@ const UI = (() => {
       const c = e.code;
       if (!D.root.classList.contains('kbd')) D.root.classList.add('kbd');   // a keyboard is in use: show 1 2 3 on the skills, Q on the potion
       if (e.key === '.' || c === 'NumpadDecimal') { if (!e.repeat) toggleFps(); e.preventDefault(); return; }   // by character: '.' sits elsewhere on a Turkish keyboard
+      if (S.menu === 'dream') return;
+      if (S.menu === 'dream-travel') { e.preventDefault(); return; }
+      if (!e.repeat && c === 'KeyM' && mapUnlocked()) { e.preventDefault(); openDreamMap(); return; }
       if (S.mode === 'choose') {
         if (c === 'Escape') { e.preventDefault(); closeChoice(); }
         else if (c === 'ArrowLeft' || c === 'ArrowRight') {
@@ -845,6 +1013,7 @@ const UI = (() => {
       if (S.mode === 'title' && (c === 'Enter' || c === 'Space')) { e.preventDefault(); startGame(false); return; }
       if (!playing()) return;
       if (c === 'Space') { e.preventDefault(); attack(); bump(D.atk, 1.1, true); }
+      else if (c === 'KeyK') { e.preventDefault(); throwBone(); }
       else if (/^Digit[1-6]$/.test(c)) { const i = +c.slice(5) - 1, s = D.sk[i]; if (s && s.shown) { const ok = safe('cast', () => M.GAME.input.cast(i)); if (ok) { s.b.classList.remove('new'); bump(s.b, 1.15, true); } } }
       else if (c === 'KeyE') { if (M.GAME.visitMerchant) M.GAME.visitMerchant(); }
       else if (c === 'KeyQ') { if (safe('potion', () => M.GAME.input.potion())) bump(D.pot, 1.18); }
@@ -1027,8 +1196,8 @@ const UI = (() => {
 
   // ───────────────────────── Minimap ─────────────────────────
   const MM = { L: null, W: 0, H: 0, S: 4, base: null, mask: null, rev: null, seen: null, lx: -1e9, lz: -1e9, dirty: false, px: 0, bg: null, front: null, spr: {}, theme: '' };
-  // Minimap backdrop (the unexplored / non-walkable part) per zone theme. Kefir Vadisi: a blueberry-milk pool with little
-  // milk bubbles (its floors — creamy yogurt, biscuit path, cheese plazas — read bright on it); Surlu Şehir: the town's
+  // Minimap backdrop (the unexplored / non-walkable part) per zone theme. Çürüme Vadisi: a blueberry-milk pool with little
+  // milk bubbles (its floors — creamy yogurt, biscuit path, cheese plazas — read bright on it); Veba Şehri: the town's
   // gardens, soft green with little grass tufts and a few tiny flowers — never water, so LEVEL's blue river and canals and its
   // sandstone city walls read as water and walls next to the honey cobblestone streets; elsewhere the night-blue dots.
   const MAP_BG = {
@@ -1347,6 +1516,10 @@ const UI = (() => {
     const hint = low && !empty;
     if (hint !== last.hint) { last.hint = hint; D.pot.classList.toggle('hint', hint); }
     // skills
+    const boneCd = Math.max(0, Number(g.boneCooldown) || 0), boneMax = Math.max(1, Number(g.boneCooldownMax) || 1);
+    D.boneBtn.classList.toggle('cool', boneCd > 0);
+    D.boneBtn.querySelector('.u-cd').style.setProperty('--p', clamp(boneCd / boneMax, 0, 1).toFixed(3));
+    D.boneBtn.querySelector('.u-cdn').textContent = boneCd > 0.05 ? Math.ceil(boneCd) : '';
     const list = g.skills || [];
     for (let i = 0; i < D.sk.length; i++) {
       const s = list[i], v = D.sk[i];
@@ -1540,7 +1713,9 @@ const UI = (() => {
   // at the zone load of that boss's zone (behind the loading screen / fade). The offscreen scene copies the main scene's light
   // counts and fog type, so the boss's shader programs are reused (no compile hitch later). Until it exists — or without
   // WebGL / EMODEL, or while EMODEL does not know that boss yet — a cute inline SVG stands in. Never a fierce 🐲/🐉 emoji.
-  const BOSS_UI = {   // ad: name fallback · lines: voice key prefixes · disc/halo: badge colours (CSS .b-<type> matches disc)
+  const BOSS_UI = {
+    kopukusta: { ad: 'Köpük Celladı', svg: SVG.bstar, lines: ['kopukusta'], disc: ['#5a655c','#39433d','#24272b'], halo: 'rgba(150,162,144,.45)' },
+    aytavsan: { ad: 'Ay Yırtıcısı', svg: SVG.bstar, lines: ['aytavsan'], disc: ['#665a72','#40384c','#26222d'], halo: 'rgba(161,138,173,.45)' },   // ad: name fallback · lines: voice key prefixes · disc/halo: badge colours (CSS .b-<type> matches disc)
     kraljole: { ad: 'Çürük Taç', svg: SVG.kraljole, lines: ['kraljole_'], disc: ['#fbf6ff', '#e6d8ff', '#b99cf2'], halo: 'rgba(80,220,235,0.85)' },
     kefirdev: { ad: 'Veba Rahibi', svg: SVG.kefirdev, lines: ['kefirdev_'], disc: ['#eaf7ff', '#b4e0fc', '#5494dc'], halo: 'rgba(130,205,255,0.9)' },
     kostebekusta: { ad: 'Mezar Kazıcısı', svg: SVG.kostebekusta, lines: ['usta_'], disc: ['#fffaf0', '#ffe3b0', '#f5b86a'], halo: 'rgba(255,190,80,0.85)' },
@@ -1548,8 +1723,9 @@ const UI = (() => {
     sovalye: { ad: 'Yeminbozan', svg: SVG.sovalye, lines: ['sovalye_'], disc: ['#fffbea', '#ffe39a', '#3d64d8'], halo: 'rgba(90,130,255,0.9)' },   // royal blue + gold
     ejderha: { ad: 'Gece Yutan', svg: SVG.dragon, lines: ['ejderha_', 'ejder'], disc: ['#fff6fc', '#ffc9ec', '#f59ad6'], halo: 'rgba(255,90,140,0.85)' },
   };
-  const BOSS_ORDER = ['kraljole', 'kefirdev', 'kostebekusta', 'lavkaplumbaga', 'sovalye', 'ejderha'];   // when ZONES has no boss fields yet
+  const BOSS_ORDER = ['kopukusta','aytavsan','kraljole', 'kefirdev', 'kostebekusta', 'lavkaplumbaga', 'sovalye', 'ejderha'];   // when ZONES has no boss fields yet
   const BOSS_SEALS = {
+    kopukusta: 'M4 6L12 3L20 6L17 16L12 21L7 16Z', aytavsan: 'M15 3A9 9 0 1 0 21 16A8 8 0 0 1 15 3Z',
     kraljole:'M4 14L3 5L8 9L12 3L16 9L21 5L20 14ZM5 18H19M8 21H16',
     kefirdev:'M6 5L12 3L19 6L18 13L12 19L10 13L4 11ZM10 8H14M12 18V22',
     kostebekusta:'M5 4L8 9L4 19M12 3L12 12L8 22M19 4L16 9L20 19M7 12H17',
@@ -1558,6 +1734,7 @@ const UI = (() => {
     ejderha:'M3 3L7 8L3 12L9 14L12 21L15 14L21 12L17 8L21 3L14 7L12 5L10 7ZM8 11L10 12M14 12L16 11'
   };
   const BOSS_DISCS = {
+    kopukusta:['#5a655c','#39433d','#24272b'], aytavsan:['#665a72','#40384c','#26222d'],
     kraljole:['#665148','#403336','#1d2029'], kefirdev:['#66664c','#424735','#20262a'],
     kostebekusta:['#6c5d4e','#443c38','#24252b'], lavkaplumbaga:['#815a45','#53372f','#292329'],
     sovalye:['#626266','#3c4047','#20252d'], ejderha:['#67444a','#3a2932','#1e212b']
@@ -1582,6 +1759,8 @@ const UI = (() => {
   // of the badge it fills. dx/dy: view direction (right, up; toward the face). A model's own m.portrait = {cx, cy, cz, rad}
   // wins over both. Tests: UI._BF.
   const BOSS_FIT = {
+    kopukusta: { over: true, dx: .12, dy: .16, cam: { cx: 0, cy: 1.85, cz: .35, rad: .85 } },
+    aytavsan: { over: true, dx: .12, dy: .16, cam: { cx: 0, cy: 1.85, cz: .35, rad: .85 } },
     kraljole: { y0: 0, y1: 1, dx: 0.12, dy: 0.24, fill: 0.9 },
     // the bottle seen from the front (from above its white shoulders hide the neck): the whole crown cork on top (05 moved the
     // label face up: cork top ≈ y 2.76), the smiling label face and a bit of the glass shoulders, so it reads as a bottle
@@ -1753,12 +1932,12 @@ const UI = (() => {
   // ───────────────────────── Banners, toasts, cards, subtitles ─────────────────────────
   const BQ = [];
   let bTimer = 0, bBusy = false;
-  // milk drips under the Kefir Vadisi zone ribbon (stretched to the ribbon's width; drawn like the ribbon's cream)
+  // milk drips under the Çürüme Vadisi zone ribbon (stretched to the ribbon's width; drawn like the ribbon's cream)
   const ZONE_DRIP = '<svg class="u-zdrip" viewBox="0 0 400 34" preserveAspectRatio="none"><path d="M0 0H400V4C392 4 390 8 384 8C376 8 377 4 366 4' +
     'C356 4 354 13 352 22C350 30 340 30 339 22C338 12 336 6 326 5C312 4 306 10 296 9C286 8 284 4 272 4C262 4 262 9 258 16C255 22 247 22 246 15' +
     'C245 8 242 5 232 5C216 5 212 11 196 11C182 11 180 4 168 4C158 4 156 10 154 20C152 32 140 32 139 21C138 10 134 5 122 5C108 5 104 10 92 10' +
     'C82 10 80 4 70 4C60 4 58 8 56 14C54 20 46 20 45 14C44 8 40 4 30 4C20 4 18 8 10 8C4 8 4 4 0 4Z"/></svg>';
-  // Surlu Şehir: the ribbon is a piece of the sandstone city wall — battlements on top (stretched to its width, like the drips)
+  // Veba Şehri: the ribbon is a piece of the sandstone city wall — battlements on top (stretched to its width, like the drips)
   // and festive bunting flags hanging from its lower edge
   const ZONE_WALL = '<svg class="u-zwall" viewBox="0 0 400 20" preserveAspectRatio="none"><path d="M0 20V16' +
     Array.from({ length: 10 }, (_, i) => `H${i * 40 + 8}V0H${i * 40 + 32}V16`).join('') + 'H400V20Z"/></svg>';   // (10 merlons on a ledge)
@@ -1782,7 +1961,7 @@ const UI = (() => {
       const mk = dairy ? '<span class="u-zmk">☣</span>' : town ? '<span class="u-zmk">♜</span>' : '◆';
       if (o.small) h += `<div class="u-zsm">${mk} ${esc(o.small)} ${mk}</div>`;
       const rib = `<div class="u-zrib">${town ? ZONE_WALL : ''}<div class="u-btitle">${ol(o.title, 'u-gold-t')}</div>${town ? ZONE_FLAGS : ''}</div>`;
-      // Kefir Vadisi: a creamy ribbon with milk dripping from its lower edge (Surlu Şehir: a piece of the city wall, see above)
+      // Çürüme Vadisi: a creamy ribbon with milk dripping from its lower edge (Veba Şehri: a piece of the city wall, see above)
       h += dairy ? `<div class="u-zwrap">${rib}${ZONE_DRIP}</div>` : rib;
       if (o.pips && o.pips.n > 1) {   // where we are on the journey: one gem per zone (done · here · still ahead)
         let p = '';
@@ -1898,9 +2077,9 @@ const UI = (() => {
     return A && A.current;
   }
   const SUB_EMO = { baykus: '☠', ilk_salyangoz: '☣', ilk_kostebek: '⛏', ilk_kaplumbaga: '⛓', ilk_ateskusu: '♜',
-    // Kefir Vadisi (Round 4): the valley, its creatures, and the glass of kefir the happy Kefir Devi gives Feza
+    // Çürüme Vadisi (Round 4): the valley, its creatures, and the glass of kefir the happy Kefir Devi gives Feza
     kefir: '☣', ilk_yogurt: '☣', ilk_kaymak: '☠', ilk_kopuk: '☣', ilk_peynir: '⛓', kefir_ikram: '☣', yolculuk: '◆',
-    // Surlu Şehir (Round 5): the walled town and its grumpy townsfolk (the knight's lines show his portrait)
+    // Veba Şehri (Round 5): the walled town and its grumpy townsfolk (the knight's lines show his portrait)
     sehir: '♜', ilk_nobetci: '⛓', ilk_simitci: '☠', ilk_supurgeci: '⚒', ilk_tellal: '⛓' };
   // Round 6 bonus lines: the boss's own portrait (lineBoss, by key prefix) with a small badge of the bonus thing in its corner
   const SUB_BADGE = { kraljole_tac: '♜', kraljole_saskin: '♜', kefirdev_balon: '☣', kefirdev_hik: '☣', usta_saklambac: '⛏', usta_yakaladin: '◆',
@@ -1973,9 +2152,10 @@ const UI = (() => {
   }
   // Zone a "Devam Et" will load (GAME's saveZone does the same): the save's zone id (zid, sv 4) when ZONES knows it, else
   // the index — saves from before the volcano (no sv or sv < 3) at zone ≥ 2 first move one zone on (Round 3), then saves
-  // from before Kefir Vadisi (sv < 4) at zone ≥ 1 move one more (Round 4). That index is in the Round 4 order (SAVE_Z4),
-  // mapped by id onto today's ZONES (Round 5: Surlu Şehir is index 4, so an old castle save stays the castle, index 5).
+  // from before Çürüme Vadisi (sv < 4) at zone ≥ 1 move one more (Round 4). That index is in the Round 4 order (SAVE_Z4),
+  // mapped by id onto today's ZONES (Round 5: Veba Şehri is index 4, so an old castle save stays the castle, index 5).
   const SAVE_Z4 = ['orman', 'kefir', 'magara', 'yanardag', 'kale'];
+  const SAVE_Z5 = ['orman', 'kefir', 'magara', 'yanardag', 'sehir', 'kale'];
   function savedZone() {
     try {
       const s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
@@ -1989,7 +2169,8 @@ const UI = (() => {
       const sv = typeof s.sv === 'number' ? s.sv : 0, n = zoneCount();
       if (sv < 3 && z >= 2) z++;
       if (sv < 4 && z >= 1) z++;
-      const k = Zs && sv < 5 && SAVE_Z4[z] ? Zs.findIndex(Z => Z && Z.id === SAVE_Z4[z]) : -1;   // (sv 5 saves: today's order)
+      const oldOrder = sv < 5 ? SAVE_Z4 : sv < 6 ? SAVE_Z5 : null;
+      const k = Zs && oldOrder && oldOrder[z] ? Zs.findIndex(Z => Z && Z.id === oldOrder[z]) : -1;
       return k >= 0 ? k : clamp(z, 0, n - 1);
     } catch (e) { return -1; }
   }
@@ -2006,6 +2187,7 @@ const UI = (() => {
   }
   function setHud(on) {
     S.hud = on; D.root.classList.toggle('hud-on', on);
+    syncDreamUnlock();
     syncDifficulty();
     if (on) { last.xp = last.lvl = last.gold = last.pot = -1; last.potEv = M.GAME ? M.GAME.P.potions : 99; ORB.acc = 1; }
   }
@@ -2029,6 +2211,7 @@ const UI = (() => {
   // Menus only open during real play (not in the victory window, portal transition or title)
   function openPause() {
     if (!canMenu()) return;
+    syncDreamUnlock();
     S.menu = 'pause'; D.pausePanel.classList.remove('asking');
     closeDifficulty();
     setPaused(true); showScreen(D.pause, true);
@@ -2040,6 +2223,8 @@ const UI = (() => {
   }
   function closeMenu() {
     if (!S.menu) return;
+    if (S.menu === 'dream-travel') { finishDreamTravel(); return; }
+    if (S.menu === 'dream') { closeDreamMap(); return; }
     if (S.menu === 'merchant') aud('stopVoice');
     if (S.menu === 'bag') newItems.clear();
     else { closeAsk(); closeDifficulty(); }
@@ -2049,6 +2234,7 @@ const UI = (() => {
   // Parent's wish: every launch is a new game ("Oyna"); "Devam Et" appears next to it only when the parent saved with
   // Mola › Kaydet. Starting a new game never touches that save (nothing is saved by itself).
   function showTitle() {
+    syncDreamUnlock();
     const g = M.GAME;
     const has = !!(g && g.hasSave && safe('hasSave', () => g.hasSave()));
     D.contBtn.classList.toggle('u-hide', !has); D.playBtn.classList.remove('u-hide');
@@ -2065,7 +2251,7 @@ const UI = (() => {
   }
   // Spoken title prompt for a child who can't read: after a quiet moment, then every 25 s while idle (at most 3 times).
   function titleVoiceTick(dt) {
-    if (S.mode !== 'title' || S.busy || S.titleSaid >= 3) return;
+    if (S.mode !== 'title' || S.menu || S.busy || S.titleSaid >= 3) return;
     const A = M.AUD; if (!A) return;
     if (!SILENT && !(A.ready && A.ready())) return;   // before the first touch iOS can't play it yet
     S.titleIdle += dt;
@@ -2097,7 +2283,7 @@ const UI = (() => {
         setMode('play'); refreshAllSkills(); portraitSoon(0);
         // Baştan Başla while Feza napped: the nap's dim layer takes the touches — lift it, or he could not walk at all
         if (D.fade.style.pointerEvents === 'auto' || parseFloat(D.fade.style.opacity) > 0) fade(0, 0.35, null);
-        startHint();   // first-run "tap the ground" finger
+        startHint();   // The recorded story and the dream begin without another confirmation screen.
       }
     } finally { S.busy = false; }
   }
@@ -2129,6 +2315,7 @@ const UI = (() => {
     }, 1800);
   }
   function showVictory() {
+    syncDreamUnlock();
     const g = M.GAME, P = g ? g.P : null;
     if (S.menu) closeMenu();   // never over an open bag/pause (it would also leave GAME.paused set for the next run)
     setMode('end');
@@ -2322,6 +2509,7 @@ const UI = (() => {
     const g = M.GAME;
     if (!g || !g.on) return;
     const on = (e, f) => g.on(e, d => { try { f(d || {}); } catch (err) { console.error('[UI] event ' + e, err); } });
+    on('dreamTravel', showDreamTravel);
     on('zone', d => {
       perfReset(3);   // zone construction and its first shaders are not sustained gameplay load
       syncDifficulty();
@@ -2343,6 +2531,11 @@ const UI = (() => {
       while (S.busy) await new Promise(r => setTimeout(r, 100));   // never drop it: GAME waits in 'transition' for us
       S.busy = true;
       try {
+        const zone = M.ZONES && M.ZONES[g.P.zone | 0], nextZone = M.ZONES && M.ZONES[(g.P.zone | 0) + 1];
+        if (zone && nextZone && (zone.id === 'tuvalet' || zone.id === 'ay')) {
+          stopHint(); clearBanners(); clearCards(); hideBoss();
+          await new Promise(proceed => showDreamTravel({ from: zone.id, to: nextZone.id, proceed }));
+        }
         await fade(1, 0.8, 'load');
         clearBanners(); clearCards(); hideBoss(); S.cine = null; stopHint();
         ensureTex((g.P.zone | 0) + 1);
@@ -2991,7 +3184,7 @@ const UI = (() => {
 
   return {
     boot, ready: readyP, fade, banner, toast, itemCard, openBag, openPause, closeMenu, showVictory, showTitle, startGame,
-    refreshPortrait, subtitle, setPref,
+    refreshPortrait, subtitle, setPref, openDreamMap, closeDreamMap, travelTo, showDreamTravel,
     get mode() { return S.mode; }, get menu() { return S.menu; }, get paused() { return S.paused; },
     _S: S, _D: D, _TC: TITLE_CAM, _DC: DRG_CAM, _BF: BOSS_FIT, _BS: BOSS_SHAPE, _FIT: FIT, _FL: FL,
     _dragon() { DRG.tried = false; DRG.url = DRG.cv = null; return dragonPortrait(); },   // tests: render the dragon portrait again

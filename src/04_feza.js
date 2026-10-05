@@ -810,6 +810,14 @@ const { FEZA, ITEMS } = (function () {
     uzay: { ...SABER.demir, fx: 'stars', col: '#3b5bff', col2: '#b46bff', L: 0.78, metal: 0xf1f3f8, grip: 0x2b3352, shroud: 'nose', nose: '#ff4a4a', btn: '#7ff3ff', motif: 'rocket', porthole: true },
     kuyruklu: { ...SABER.demir, fx: 'stars', col: '#ffc53a', col2: '#ffeaa0', haloCol: '#c9a8ff', L: 0.8, metal: 0xece4ff, grip: 0x3a2c5c, shroud: 'crown', btn: '#fff6c8', motif: 'star', btnPos: [0, 0.1, 0.029], trail: '#ffe38a' },
   });
+  Object.assign(SABER, {
+    sabun: { ...SABER.demir, col: '#67e8df', col2: '#ffb5df', fx: 'grad', metal: 0xd5fff8, grip: 0x7cc6be, shroud: 'round', motif: 'bubble', btn: '#fff5bc' },
+    ayisik: { ...SABER.demir, col: '#c4bcff', haloCol: '#b5efff', metal: 0xe3e8ff, grip: 0x6467ad, shroud: 'crown', motif: 'moon', btn: '#f9e295' },
+    kopukkilic: { ...SABER.demir, col: '#7affdb', col2: '#ffc9ed', fx: 'grad', metal: 0xfff2d5, grip: 0x54bda9, shroud: 'round', motif: 'bubble', btn: '#fff3a5', L: .72 },
+    kopukikiz: { ...SABER.demir, col: '#ffbeed', col2: '#83fff3', fx: 'grad', metal: 0xf7c9e8, grip: 0x9a75aa, shroud: 'round', motif: 'bubble', btn: '#fff6bc', L: .73 },
+    aytavsankilic: { ...SABER.demir, col: '#e2ddff', col2: '#87deff', fx: 'stars', metal: 0xf4ecce, grip: 0x6663a2, shroud: 'crown', motif: 'moon', btn: '#ffc95c', L: .77 },
+    aytavsanikiz: { ...SABER.demir, col: '#ffcde9', col2: '#d4bcff', fx: 'stars', metal: 0xe9dbff, grip: 0x776cb1, shroud: 'crown', motif: 'moon', btn: '#9ff6ff', L: .77 },
+  });
   const WAND = {
     findik: { wood: '#855137', col: '#a1cfff', L: 0.48, band: '#c9a16b' },
     mese: { wood: '#533c2c', col: '#79dbbd', L: 0.53, band: '#b8ca9b' },
@@ -834,6 +842,12 @@ const { FEZA, ITEMS } = (function () {
     lolipop: { wood: '#fff7fb', col: '#ff6fb5', L: 0.5, band: '#ff8fc8', stripe: '#ff5aa6', motif: 'lollipop', tipP: [0, 0.53, 0.026], tipS: [0.021, 0.021, 0.012], tipI: 2.0 },
     kedipati: { wood: '#f1dfc1', col: '#ffc2de', L: 0.55, band: '#ffb0d2', motif: 'paw', tipP: [0, 0.543, 0.03], tipS: [0.025, 0.021, 0.011], tipI: 1.9 },
     gezegen: { wood: '#1f2a5c', col: '#ffa24a', L: 0.6, band: '#f2c45a', motif: 'planet', tipP: [0, 0.605, 0], tipS: [0.036, 0.036, 0.036], tipI: 1.7 },
+  });
+  Object.assign(WAND, {
+    damla: { wood: '#72bdb4', col: '#9cffff', L: .51, band: '#ffdfb6', motif: 'bubble' },
+    yildiztozu: { wood: '#59518e', col: '#d0baff', L: .54, band: '#fff0aa', motif: 'moon' },
+    kopukdegnek: { wood: '#58ad9c', col: '#c6fff4', L: .58, band: '#ffc6e8', motif: 'bubble' },
+    aytavsandegnek: { wood: '#625495', col: '#e7d6ff', L: .61, band: '#ffd36b', motif: 'moon' },
   });
   const saberDef = id => SABER[id] || SABER.demir;
   // rainbow blade: hue = fract(t * RB_SPEED + y * RB_GRAD) (y along the blade in metres), HSV saturation RB_SAT
@@ -1051,7 +1065,19 @@ const { FEZA, ITEMS } = (function () {
   // Decorations are merged into one mesh, keeping even the dual-wielding hero inexpensive.
   function weaponOrnament(motif, band, col, y) {
     return geoC('ornament:' + motif + ':' + band + ':' + col + ':' + y, () => kitGeo(k => {
-      if (motif === 'cloud' || motif === 'jelly') {
+      if (motif === 'bubble') {
+        for (const [x, yy, z, rr] of [[-.04, -.015, 0, .033], [.04, .01, .006, .028], [0, .046, 0, .026], [.005, -.027, .023, .021]]) {
+          k.add(G.sphere(14), col, [x, y + yy, z], 0, rr);
+          k.add(G.sphere(8), '#ffffff', [x - rr * .28, y + yy + rr * .28, z + rr * .78], 0, rr * .20);
+        }
+      } else if (motif === 'moon') {
+        const moon = new THREE.Shape();
+        moon.moveTo(.035, .061); moon.bezierCurveTo(-.075, .085, -.083, -.065, .034, -.055);
+        moon.bezierCurveTo(-.022, -.025, -.02, .029, .035, .061);
+        k.add(geoC('moonOrnament', () => flatGeo(moon, .018, .003)), band, [0, y + .016, 0]);
+        k.add(geoC('moonStar', () => starGeo(.022, .005)), col, [.06, y + .042, .01]);
+        k.add(G.sphere(10), '#ffffff', [.05, y - .031, .004], 0, .010);
+      } else if (motif === 'cloud' || motif === 'jelly') {
         for (let i = 0; i < 5; i++) { const a = i / 5 * TAU; k.add(G.sphere(12), i & 1 ? band : col, [Math.sin(a) * 0.045, y + Math.cos(a) * 0.042, 0], 0, [0.035, 0.039, 0.027]); }
       } else if (motif === 'ice') {
         for (const side of [-1, 1]) k.add(G.cone(5), col, [side * 0.044, y, 0], [0, 0, side * -0.32], [0.024, 0.13, 0.024]);
@@ -1614,6 +1640,8 @@ const { FEZA, ITEMS } = (function () {
     sekerpelerin: { base: '#ff9fd0', dark: '#b08bff', trim: '#9ff0cf', edge: 'scallop' },
     panda: { base: '#eceef3', dark: '#c4cad6', trim: '#74c663', edge: 'leaf' },
     galaksi: { base: '#4b2a92', dark: '#0f1a4e', trim: '#ffcf4a', edge: 'points' },
+    sabunkopugu: { base: '#b9fff0', dark: '#65bcca', trim: '#fff3cc', edge: 'wave', motif: 'foam' },
+    aygezgini: { base: '#b6baff', dark: '#464d95', trim: '#fff1b3', edge: 'points', motif: 'moon' },
   });
   const CAPE_TEX = {};
   function capeTex(id) {
@@ -1997,6 +2025,35 @@ const { FEZA, ITEMS } = (function () {
     const handR = new THREE.Object3D(); handR.position.set(0, -0.18, 0.01); B.foreR.add(handR);
     const tip0 = new THREE.Object3D(); tip0.position.set(0, 0.35, 0); wSlot.add(tip0);
     const headC = new THREE.Object3D(); headC.position.copy(HC); B.head.add(headC);
+    let readingBook = null;
+    function makeReadingBook() {
+      const book = new THREE.Group(); book.name = 'Feza open dream book';
+      const material = color => new THREE.MeshStandardMaterial({ color, roughness: .76 });
+      const cover = material('#387fb0'), paper = material('#fff3d3'), gold = material('#e8ba61'), ink = material('#83a5b0'), violet = material('#aa86d7'), pink = material('#ef94ac');
+      const box = (parent, x, y, z, w, h, d, mat) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat); m.position.set(x,y,z); m.castShadow = true; parent.add(m); return m; };
+      box(book,0,-.009,0,.018,.028,.276,gold);
+      for(const side of [-1,1]) {
+        const page = new THREE.Group(); page.rotation.z = side * .12; book.add(page);
+        box(page,side*.112,-.005,0,.22,.021,.279,cover);
+        box(page,side*.108,.014,0,.206,.017,.264,paper);
+        // Layered cream pages, a gold border, rounded ink marks and a coloured story illustration.
+        for(const zz of [-.119,.119]) box(page,side*.108,.024,zz,.19,.002,.003,gold);
+        box(page,side*.202,.024,0,.003,.002,.24,gold);
+        for(let i=0;i<4;i++) box(page,side*(.1+(i%2)*.013),.025,.032+i*.017,.127-(i%2)*.024,.0015,.0035,ink);
+        if(side<0) {
+          const star = new THREE.Mesh(flatGeo(starShape(.037,.017),.002,.001),gold); star.rotation.x=-Math.PI/2;star.position.set(-.108,.027,-.067);page.add(star);
+          for(const x of [-.165,-.05]) { const dot = new THREE.Mesh(new THREE.SphereGeometry(1,10,8),pink);dot.position.set(x,.027,-.042);dot.scale.set(.011,.002,.011);page.add(dot); }
+        } else {
+          const planet = new THREE.Mesh(new THREE.SphereGeometry(1,16,10),violet);planet.position.set(.105,.027,-.064);planet.scale.set(.029,.004,.029);page.add(planet);
+          const ring = new THREE.Mesh(new THREE.TorusGeometry(.042,.003,6,30),gold);ring.rotation.x=Math.PI/2;ring.position.set(.105,.029,-.064);page.add(ring);
+          for(const x of [.046,.169]) {const dot=new THREE.Mesh(new THREE.SphereGeometry(.004,8,6),gold);dot.position.set(x,.028,-.10);page.add(dot);}
+        }
+      }
+      box(book,.009,-.021,.129,.013,.003,.047,pink);
+      book.position.set(0,.039,.30); book.rotation.x = -.08; B.chest.add(book);
+      book.traverse(o=>{if(o.isMesh){o.frustumCulled=false;o.renderOrder=HERO_ORDER;}});
+      return book;
+    }
 
     const P = new Float32Array(NCH), Q = new Float32Array(NCH);
     const S = {
@@ -2158,6 +2215,26 @@ const { FEZA, ITEMS } = (function () {
         P[C.aRX] = lerp(P[C.aRX], -0.15, w); P[C.aRY] = lerp(P[C.aRY], 0, w); P[C.fR] = lerp(P[C.fR], -0.35, w);
       }
       if (S.fixed) S.fixed(P, face);
+      const reading = !!st.sitRead && !dead;
+      if (reading) {
+        // The actual game skeleton sits on the seat: thighs forward, knees bent, hands round the book.
+        P.set(BASE);
+        P[C.bY] = -.025; P[C.bX] = 0; P[C.bZ] = 0;
+        P[C.bRX] = 0; P[C.bRY] = 0; P[C.bRZ] = 0;
+        P[C.hRX] = 0; P[C.hRY] = 0; P[C.hRZ] = 0;
+        P[C.cRX] = .045 + Math.sin(t*1.8)*.008; P[C.cRY] = 0; P[C.cRZ] = 0;
+        P[C.tLX] = P[C.tRX] = -Math.PI/2; P[C.tLZ] = .08; P[C.tRZ] = -.08;
+        P[C.sL] = P[C.sR] = Math.PI/2;
+        P[C.aLX] = P[C.aRX] = -.65; P[C.aLY] = .03; P[C.aRY] = -.03;
+        P[C.aLZ] = .03; P[C.aRZ] = -.03; P[C.fL] = P[C.fR] = -1.1; P[C.fLZ] = P[C.fRZ] = 0;
+        P[C.kRX] = .22 + Math.sin(t*.9)*.015; P[C.kRY] = Math.sin(t*.65)*.025; P[C.kRZ] = .025;
+        for (const k in face) face[k] = 0;
+        face.grin = .3; face.blush = .25; face.look = 1; face.lookX = Math.sin(t*.65)*.06; face.lookY = -.65;
+        if (!readingBook) readingBook = makeReadingBook();
+        readingBook.rotation.x = -.08 + Math.sin(t*1.8)*.008;
+      }
+      if(readingBook) readingBook.visible = reading;
+      wSlot.visible = offSlot.visible = capeSlot.visible = !reading;
       applyPose(P);
 
       // ── face ──
@@ -2305,7 +2382,7 @@ const { FEZA, ITEMS } = (function () {
 
     const H = {
       root, tip: v3(), wandTip: v3(), hand: v3(), bones: B, skeleton: skel, slots: { weapon: wSlot, offhand: offSlot, hat: hatSlot, cape: capeSlot },
-      update,
+      update, readSeatHeight: .40,
       bladeOn: true,       // lightsaber on (or igniting); false while retracted / asleep
       ignite,              // H.ignite(): blade grows out of the hilt (0 → full in 0.3 s) with a small flash
       retract,             // extra: H.retract() puts the blade away (update() re-ignites it only after sleeping)
@@ -2329,12 +2406,14 @@ const { FEZA, ITEMS } = (function () {
       _hat(e) { const prev = S.eq.hat; wearHat(e); return () => wearHat(prev); },
       // portrait helpers: neutral pose + face looking at (lx, ly); returns a restore function
       _neutral(lx, ly) {
-        const saved = { bones: bones.map(b => [b.position.clone(), b.rotation.clone()]), w: wSlot.rotation.clone(), ow: offSlot.rotation.clone(), eye: U.fzEye.value.clone(), ew: U.fzEyeW.value.clone(),
+        const saved = { bookVisible: readingBook && readingBook.visible, bones: bones.map(b => [b.position.clone(), b.rotation.clone()]), w: wSlot.rotation.clone(), ow: offSlot.rotation.clone(), eye: U.fzEye.value.clone(), ew: U.fzEyeW.value.clone(),
           mo: U.fzMouth.value.clone(), br: U.fzBrow.value.clone(), ho: HU.fzHOff.value.clone(), he: HU.fzHExp.value, flow: S.capeU ? S.capeU.cpFlow.value : 0 };
+        if(readingBook)readingBook.visible=false;
         const p = new Float32Array(NCH); idlePose(p, 0); p[C.kRX] = -0.12; p[C.kRZ] = 0.1; applyPose(p);
         U.fzEye.value.set(0, lx, ly, .28); U.fzEyeW.value.set(1, 0, 0); U.fzMouth.value.set(1, 0, 0, 0); U.fzBrow.value.set(-.12, .65, 0);
         HU.fzHOff.value.set(0, 0, 0); HU.fzHExp.value = 0; if (S.capeU) S.capeU.cpFlow.value = 0;
         return () => {
+          if(readingBook)readingBook.visible=!!saved.bookVisible;
           bones.forEach((b, i) => { b.position.copy(saved.bones[i][0]); b.rotation.copy(saved.bones[i][1]); }); wSlot.rotation.copy(saved.w); offSlot.rotation.copy(saved.ow);
           U.fzEye.value.copy(saved.eye); U.fzEyeW.value.copy(saved.ew); U.fzMouth.value.copy(saved.mo); U.fzBrow.value.copy(saved.br);
           HU.fzHOff.value.copy(saved.ho); HU.fzHExp.value = saved.he; if (S.capeU) S.capeU.cpFlow.value = saved.flow;
@@ -2587,6 +2666,9 @@ const { FEZA, ITEMS } = (function () {
   for (const [id, ad, minLvl] of [['lolipop', 'Lolipop Değneği', 1], ['kedipati', 'Kedi Patisi Değneği', 3], ['gezegen', 'Gezegen Değneği', 7]]) BASES.weapon.push({ id, ad, minLvl, heroClass: 'wizard' });
   for (const [id, ad, minLvl] of [['kedikulak', 'Kedi Kulaklı Bere', 1], ['dondurma', 'Dondurma Şapkası', 2], ['yunikorn', 'Yunikorn Tacı', 4], ['astronot', 'Astronot Kaskı', 6]]) BASES.hat.push({ id, ad, minLvl });
   for (const [id, ad, minLvl] of [['sekerpelerin', 'Şeker Pelerini', 2], ['panda', 'Panda Pelerini', 3], ['galaksi', 'Galaksi Pelerini', 7]]) BASES.cape.push({ id, ad, minLvl });
+  BASES.weapon.push({ id: 'sabun', ad: 'Sabun Köpüğü Işın Kılıcı', minLvl: 0 }, { id: 'ayisik', ad: 'Ay Gezgini Işın Kılıcı', minLvl: 1 },
+    { id: 'damla', ad: 'Çiş Damlası Değneği', minLvl: 0, heroClass: 'wizard' }, { id: 'yildiztozu', ad: 'Yıldız Tozu Değneği', minLvl: 1, heroClass: 'wizard' });
+  BASES.cape.push({ id: 'sabunkopugu', ad: 'Sabun Köpüğü Pelerini', minLvl: 0 }, { id: 'aygezgini', ad: 'Ay Gezgini Pelerini', minLvl: 1 });
   for (const slot of Object.keys(BASES)) for (const b of BASES[slot]) if (b.boss) b.classLock = b.heroClass || 'warrior';
   for (const [slot, id, ad, classLock] of [
     ['weapon', 'jolesihir', 'Jöle Kralının Köpük Değneği', 'wizard'], ['cape', 'kefirsihir', 'Kefir Devinin Sihirli Pelerini', 'wizard'],
@@ -2597,9 +2679,14 @@ const { FEZA, ITEMS } = (function () {
     // (Round 5) the Huysuz Şövalye's treasures
     ['hat', 'sovalyemigfer', 'Şövalyenin Tüylü Miğferi', 'warrior'], ['cape', 'sovalyesihir', 'Şövalyenin Arma Pelerini', 'wizard'],
     ['weapon', 'sovalyeikiz', 'Şövalyenin Turnuva Kılıcı', 'hybrid'],
+    ['weapon', 'kopukkilic', 'Köpük Ustanın Neşe Kılıcı', 'warrior'], ['weapon', 'kopukdegnek', 'Köpük Ustanın Baloncuk Değneği', 'wizard'],
+    ['weapon', 'kopukikiz', 'Köpük Ustanın Gülümseme Kılıcı', 'hybrid'],
+    ['weapon', 'aytavsankilic', 'Ay Tavşanının Hilal Kılıcı', 'warrior'], ['weapon', 'aytavsandegnek', 'Ay Tavşanının Yıldız Değneği', 'wizard'],
+    ['weapon', 'aytavsanikiz', 'Ay Tavşanının Rüya Kılıcı', 'hybrid'],
   ]) BASES[slot].push({ id, ad, minLvl: 0, boss: true, classLock, ...(WAND[id] ? { heroClass: 'wizard' } : {}) });
   const CURSED_NAMES = {"tahta":"Son İrade","demir":"Merhametsiz Hüküm","kristal":"Mezar Kristali","ates":"Kanlı Kor Kılıcı","yildiz":"Boşluk Kılıcı","gokkusagi":"Son Hüküm","findik":"Kemik Asa","mese":"Kuru Kök Asası","ay":"Ölü Ay Asası","kor":"Kül Asası","yildizdegnek":"Uçurum Asası","gokdegnek":"Hiçlik Asası","lavkilic":"Kül Muhafızının Kılıcı","lavdegnek":"Kül Muhafızının Asası","ejderkilic":"Gece Yutanın Dişi","ejderdegnek":"Gece Yutanın Asası","migfer":"Yemin Miğferi","sihirbaz":"Cellat Başlığı","kovboy":"Mezar Bekçisi Miğferi","korsan":"Korsan Celladın Maskesi","tac":"Lanet Tacı","joletac":"Çürük Taç","kostebekfener":"Mezar Kazıcısının Maskesi","kirmizi":"Kan Yemini Pelerini","mavi":"Gece Kefeni","yesil":"Çürük Orman Kefeni","mor":"Uçurum Pelerini","kefirkopuk":"Veba Rahibinin Kefeni","buzkilic":"Ölü Buz Kılıcı","guniskilic":"Sönmüş Güneş","dalga":"Boğulanların Kılıcı","mercan":"Boğulmuş Kemik Asası","bulut":"Duman Asası","cicek":"Diken Asası","bulutbere":"Kül Miğferi","yaprakbaslik":"Diken Bekçisinin Maskesi","deniz":"Boğulmuşların Kefeni","gunes":"Sönmüş Güneş Kefeni","pamukseker":"Et Yiyen Kılıç","kalp":"Masumların İntikamı","uzay":"Uçurum Mızrağı","kuyruklu":"Kıyamet Kılıcı","lolipop":"Ruh Kancası","kedipati":"Pençe Asası","gezegen":"Kara Küre Asası","kedikulak":"Boynuzlu Cellat Miğferi","dondurma":"Kemik Diken Miğferi","yunikorn":"Tek Boynuzlu Lanet Miğferi","astronot":"Boşluk Maskesi","sekerpelerin":"Yırtık Cellat Kefeni","panda":"Kemik Kefeni","galaksi":"Yıldızsız Gece","jolesihir":"Çürük Tacın Asası","kefirsihir":"Veba Rahibinin Pelerini","magarasihir":"Mezar Kazıcısının Tacı","joleikiz":"Çürük Tacın Hükmü","kefirikiz":"Veba Rahibinin Kancası","magaraikiz":"Mezar Kazıcısının Pençesi","lavikiz":"Kül Muhafızının Hükmü","ejderikiz":"Gece Yutanın Yemini","sovalyemigfer":"Yeminbozanın Miğferi","sovalyesihir":"Yeminbozanın Kefeni","sovalyeikiz":"Yeminbozanın Kılıcı"};
-  for (const slot of Object.keys(BASES)) for (const b of BASES[slot]) b.ad = slot === 'cape' && b.id === 'gokkusagi' ? 'Son Hükmün Kefeni' : CURSED_NAMES[b.id];
+  Object.assign(CURSED_NAMES, {"sabun":"Paslı Hamam Kılıcı","ayisik":"Kül Ayı Kılıcı","damla":"Zehir Damlası Asası","yildiztozu":"Sönmüş Yıldız Asası","sabunkopugu":"Lanet Köpüğü Kefeni","aygezgini":"Kül Ayı Kefeni","kopukkilic":"Köpük Celladının Kılıcı","kopukdegnek":"Köpük Celladının Asası","kopukikiz":"Köpük Celladının Hükmü","aytavsankilic":"Ay Yırtıcısının Hilali","aytavsandegnek":"Ay Yırtıcısının Asası","aytavsanikiz":"Ay Yırtıcısının Yemini"});
+  for (const slot of Object.keys(BASES)) for (const b of BASES[slot]) b.ad = slot === 'cape' && b.id === 'gokkusagi' ? 'Son Hükmün Kefeni' : (CURSED_NAMES[b.id] || b.ad);
   const MULT = [1, 1.35, 1.75, 2.3];
   let UID = (Date.now() % 1e9) * 10;
   function make(slot, id, rarity = 0, ilvl = 1) {
@@ -2621,9 +2708,11 @@ const { FEZA, ITEMS } = (function () {
   }
   function bossReward(type, heroClass = 'warrior', ilvl = 1) {
     const wizard = heroClass === 'wizard', gift = heroClass === 'hybrid' ? {
+      kopukusta: ['weapon', 'kopukikiz'], aytavsan: ['weapon', 'aytavsanikiz'],
       kraljole: ['weapon', 'joleikiz'], kefirdev: ['weapon', 'kefirikiz'], kostebekusta: ['weapon', 'magaraikiz'],
       lavkaplumbaga: ['weapon', 'lavikiz'], sovalye: ['weapon', 'sovalyeikiz'], ejderha: ['weapon', 'ejderikiz'],
     }[type] : {
+      kopukusta: ['weapon', wizard ? 'kopukdegnek' : 'kopukkilic'], aytavsan: ['weapon', wizard ? 'aytavsandegnek' : 'aytavsankilic'],
       kraljole: wizard ? ['weapon', 'jolesihir'] : ['hat', 'joletac'], kefirdev: ['cape', wizard ? 'kefirsihir' : 'kefirkopuk'], kostebekusta: ['hat', wizard ? 'magarasihir' : 'kostebekfener'],
       lavkaplumbaga: ['weapon', wizard ? 'lavdegnek' : 'lavkilic'], sovalye: wizard ? ['cape', 'sovalyesihir'] : ['hat', 'sovalyemigfer'],
       ejderha: ['weapon', wizard ? 'ejderdegnek' : 'ejderkilic'],
@@ -2708,7 +2797,9 @@ const { FEZA, ITEMS } = (function () {
   }
   // (Round 6) boss treasures carry their boss's round crest in the card's corner (30 px on the 128 px card):
   // Kral Jöle crown · Kefir Devi bottle · Usta Köstebek drill hat · Lav Kaplumbağası hex shell · Şövalye horseshoe · Ejderha wing-heart
-  const CREST_OF = {}, CREST_COL = { kraljole: '#6f5e49', kefirdev: '#526348', kostebekusta: '#6b5547', lavkaplumbaga: '#a24a2d', sovalye: '#555d69', ejderha: '#674958' };
+  const CREST_OF = {}, CREST_COL = { kopukusta: '#827f76', aytavsan: '#77688e', kraljole: '#6f5e49', kefirdev: '#526348', kostebekusta: '#6b5547', lavkaplumbaga: '#a24a2d', sovalye: '#555d69', ejderha: '#674958' };
+  for (const id of ['kopukkilic', 'kopukdegnek', 'kopukikiz']) CREST_OF[id] = 'kopukusta';
+  for (const id of ['aytavsankilic', 'aytavsandegnek', 'aytavsanikiz']) CREST_OF[id] = 'aytavsan';
   for (const [type, ids] of Object.entries({ kraljole: 'joletac jolesihir joleikiz', kefirdev: 'kefirkopuk kefirsihir kefirikiz', kostebekusta: 'kostebekfener magarasihir magaraikiz',
     lavkaplumbaga: 'lavkilic lavdegnek lavikiz', sovalye: 'sovalyemigfer sovalyesihir sovalyeikiz', ejderha: 'ejderkilic ejderdegnek ejderikiz' })) for (const id of ids.split(' ')) CREST_OF[id] = type;
   function crest(g, type, x, y, R) {
@@ -2720,7 +2811,13 @@ const { FEZA, ITEMS } = (function () {
     const k = R / 15; g.scale(k, k); g.lineJoin = 'round'; g.lineCap = 'round';
     const W = '#dbceb3';
     g.fillStyle = W; g.strokeStyle = W;
-    if (type === 'kraljole') {   // crown
+    if (type === 'kopukusta') {
+      for (const [xx, yy, rr] of [[-4, 2, 4], [3, 0, 4.5], [0, -6, 3]]) { g.beginPath(); g.arc(xx, yy, rr, 0, TAU); g.fill(); }
+    } else if (type === 'aytavsan') {
+      g.beginPath(); g.ellipse(0, 3, 6.5, 5.5, 0, 0, TAU); g.fill();
+      for (const xx of [-3, 3]) { g.beginPath(); g.ellipse(xx, -4.5, 2.1, 6, xx * -.05, 0, TAU); g.fill(); }
+      g.fillStyle = CREST_COL[type]; for (const xx of [-2, 2]) { g.beginPath(); g.arc(xx, 2, .9, 0, TAU); g.fill(); }
+    } else if (type === 'kraljole') {   // crown
       g.beginPath(); g.moveTo(-8, 5); g.lineTo(-8.5, -4); g.lineTo(-4, 0); g.lineTo(0, -7); g.lineTo(4, 0); g.lineTo(8.5, -4); g.lineTo(8, 5); g.closePath(); g.fill();
       g.fillStyle = CREST_COL[type]; for (const xx of [-4, 0, 4]) { g.beginPath(); g.arc(xx, 2.5, 1.3, 0, TAU); g.fill(); }
     } else if (type === 'kefirdev') {   // plague mask and beak
