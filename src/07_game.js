@@ -172,7 +172,7 @@ const GAME = (() => {
     bossNap: { dmg: 0.75, dmgMin: 0.55, hp: 0.08 },   // each nap in a boss fight tires the boss: damage ×0.75 (down to ×0.55), −8 % hp
     dmg: 1.8,           // enemy damage (was 1.5)
     // Final incoming damage: applied once to melee, shots and boss/area attacks, before armour and rounding.
-    damageTaken: { normal: 2.6, hard: 4.5 },
+    damageTaken: { normal: 3.5, hard: 5.5 },
     // × per zone: the forest must bite a little too (a potion now and then); the volcano's rolling turtles and ember chicks
     // come in crowds. Round 3 QA (10 naive kid runs: forest/cave hit as hard as each other while Feza is much weaker in the
     // forest, level-1 naps in the first 20 s; the castle was the easiest): was [1.7, 1.2, 1, 1]. Round 4: the kefir valley

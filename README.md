@@ -51,7 +51,7 @@ Parmağınızı sürükleyerek yürüyün; yaratığa dokunarak saldırın. Sağ
 
 Can bitince son yemin taşına dönülür. İlerleme yalnız **Mola › Kaydet** ile saklanır. Normal ve Zor seçenekleri vardır. Bilbo'nun yeni ön saf davranışı dışında temel savaş dengesi korunmuştur.
 
-**Hasar çarpanı:** Normal zorlukta bütün huysuz ve boss saldırıları eski Normal değerlere göre **%160** (2,6 katı), Zor zorlukta eski Zor değerlere göre **%350** (4,5 katı) daha güçlüdür. Yakın vuruşlar, uzaktan atışlar ve bossların alan/özel saldırıları buna dahildir.
+**Hasar çarpanı:** Normal zorlukta bütün huysuz ve boss saldırıları eski Normal değerlere göre **%250** (3,5 katı), Zor zorlukta eski Zor değerlere göre **%450** (5,5 katı) daha güçlüdür. Yakın vuruşlar, uzaktan atışlar ve bossların alan/özel saldırıları buna dahildir.
 
 ## Ses
 
