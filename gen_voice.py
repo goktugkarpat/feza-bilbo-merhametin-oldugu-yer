@@ -33,6 +33,11 @@ PRONOUNCE = [
     (r"(?i)\bunicorn", "yunikorn"),
     (r"\bHu hu\b", "Huu huu"),
     (r"\bDevam Et\b", "Devam et"),   # the button's name; a lone capitalised "Et" must not sound like an abbreviation
+    (r"\bKral Jöle", "Kral, Jöle"),            # without the pause the engine glued it to "Kraljöle"
+    (r"\bVeba Rahibi", "Veba, Rahibi"),        # was heard as "Vebar ahibi"
+    (r"\bayin", "ayiin"),                      # was heard as "a in"
+    (r"\btellal", "tel lal"),
+    (r"\bTellal", "Tel lal"),
 ]
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
